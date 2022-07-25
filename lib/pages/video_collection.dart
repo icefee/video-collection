@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../tool/type.dart';
-import '../pages/video_player.dart';
+import '../pages/detail.dart';
 
 class VideoCollection extends StatelessWidget {
   const VideoCollection({Key? key, required this.section }) : super(key: key);
@@ -49,7 +49,7 @@ class VideoCollection extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                        builder: (BuildContext context) => VideoPlayer(video: video)
+                        builder: (BuildContext context) => VideoDetail(video: video)
                     )
                   );
                 },
