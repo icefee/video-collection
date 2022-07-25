@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../tool/type.dart';
+import '../pages/video_player.dart';
 
 class VideoCollection extends StatelessWidget {
   const VideoCollection({Key? key, required this.section }) : super(key: key);
@@ -45,6 +46,13 @@ class VideoCollection extends StatelessWidget {
                   color: Colors.grey,
                   size: 16.0,
                 ),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (BuildContext context) => VideoPlayer(video: video)
+                    )
+                  );
+                },
               );
             },
             separatorBuilder: (BuildContext context, int index) => Divider(height: 1, color: Colors.grey[300])
