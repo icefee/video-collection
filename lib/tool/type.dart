@@ -4,8 +4,7 @@ class RequestData {
 
   RequestData(this.videos);
   static RequestData fromMap(Map map) {
-    Map<String, dynamic> props = map['props']['pageProps'];
-    List<Map> videos = (props['videos'] as List).map((e) => e as Map).toList();
+    List<Map> videos = (map['videos'] as List).map((e) => e as Map).toList();
     List<VideoSection> sections = videos.map((Map section) => VideoSection.fromMap(section)).toList();
     return RequestData(sections);
   }
