@@ -70,7 +70,7 @@ class _VideoDetail extends State<VideoDetail> {
   }
 
   void _onEnd() {
-    if (widget.video is Series && playEpisode < (widget.video as Series).episodes) {
+    if (widget.video is Series && playEpisode < (widget.video as Series).episodes - 1) {
       _playeEpisode(playEpisode + 1);
     }
   }

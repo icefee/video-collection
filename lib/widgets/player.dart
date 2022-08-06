@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:flutter/foundation.dart';
+import 'package:wakelock/wakelock.dart';
 import 'dart:math' show min, max;
+
+void setWakelock(bool enable) {
+  if (!kIsWeb) {
+    enable ? Wakelock.enable() : Wakelock.disable();
+  }
+}
 
 class NetworkVideoPlayer extends StatefulWidget {
   final String url;
@@ -52,11 +60,12 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
     });
     // await _controller.setLooping(true);
     await _controller.initialize();
-    await _controller.play();
 
     setState(() {
       pending = false;
     });
+    await _controller.play();
+    setWakelock(true);
   }
 
   @override
@@ -72,6 +81,7 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
 
   void _disposePlayer() {
     _controller.dispose();
+    setWakelock(false);
   }
 
   @override
@@ -118,11 +128,13 @@ class _ControlsOverlay extends State<ControlsOverlay> {
   void _togglePlay() {
     if (widget.controller.value.isPlaying) {
       widget.controller.pause();
+      setWakelock(false);
       setState(() {
         controlsVisible = true;
       });
     } else {
       widget.controller.play();
+      setWakelock(true);
     }
   }
 

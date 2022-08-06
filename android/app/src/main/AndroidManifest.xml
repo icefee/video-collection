@@ -3,7 +3,7 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
    <application
-        android:label="video_collection"
+        android:label="视频文件夹"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
