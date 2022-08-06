@@ -6,12 +6,14 @@ class NetworkVideoPlayer extends StatefulWidget {
   final String url;
   final Color themeColor;
   final VoidCallback? toggleFullScreen;
+  final VoidCallback? onEnd;
 
   const NetworkVideoPlayer(
       {Key? key,
       required this.url,
       this.themeColor = Colors.blue,
-      this.toggleFullScreen})
+      this.toggleFullScreen,
+      this.onEnd})
       : super(key: key);
 
   @override
@@ -20,6 +22,7 @@ class NetworkVideoPlayer extends StatefulWidget {
 
 class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
   late VideoPlayerController _controller;
+  bool pending = false;
 
   @override
   void initState() {
@@ -37,11 +40,23 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
     );
 
     _controller.addListener(() {
+      if (_controller.value.isPlaying && _controller.value.position.inSeconds == _controller.value.duration.inSeconds) {
+        widget.onEnd?.call();
+      }
+
       setState(() {});
+    });
+
+    setState(() {
+      pending = true;
     });
     // await _controller.setLooping(true);
     await _controller.initialize();
     await _controller.play();
+
+    setState(() {
+      pending = false;
+    });
   }
 
   @override
@@ -76,6 +91,7 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
         ),
         ControlsOverlay(
             controller: _controller,
+            pending: pending,
             toggleFullScreen: () => widget.toggleFullScreen?.call())
       ],
     );
@@ -84,10 +100,11 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
 
 class ControlsOverlay extends StatefulWidget {
   const ControlsOverlay(
-      {Key? key, required this.controller, required this.toggleFullScreen})
+      {Key? key, required this.controller, required this.pending, required this.toggleFullScreen})
       : super(key: key);
 
   final VideoPlayerController controller;
+  final bool pending;
   final VoidCallback toggleFullScreen;
 
   @override
@@ -161,13 +178,13 @@ class _ControlsOverlay extends State<ControlsOverlay> {
             constraints: const BoxConstraints.expand(),
             decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    controlsVisible ? Colors.black54 : Colors.transparent,
-                    Colors.transparent
-                  ],
-                  stops: const [.2, .5],
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [
+                controlsVisible ? Colors.black54 : Colors.transparent,
+                Colors.transparent
+              ],
+              stops: const [.2, .5],
             )),
             duration: const Duration(milliseconds: 200),
           ),
@@ -185,7 +202,9 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                           colors: VideoProgressColors(
                               playedColor: Theme.of(context).primaryColor,
                               backgroundColor: Colors.white30,
-                              bufferedColor: Colors.white38)),
+                              bufferedColor: Colors.white38
+                          )
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.all(5.0),
@@ -194,7 +213,18 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                         children: <Widget>[
                           Row(
                             children: <Widget>[
-                              InkWell(
+                              (widget.pending || widget.controller.value.isBuffering) ? const SizedBox(
+                                width: 36,
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 20.0,
+                                    height: 20.0,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                    ),
+                                  ),
+                                ),
+                              ) : InkWell(
                                 onTap: _togglePlay,
                                 child: Icon(
                                   widget.controller.value.isPlaying

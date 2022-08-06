@@ -69,6 +69,12 @@ class _VideoDetail extends State<VideoDetail> {
     isFullScreen ? _exitFullScreen() : _setFullScreen();
   }
 
+  void _onEnd() {
+    if (widget.video is Series && playEpisode < (widget.video as Series).episodes) {
+      _playeEpisode(playEpisode + 1);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -102,6 +108,7 @@ class _VideoDetail extends State<VideoDetail> {
                             url: playUrl,
                             themeColor: Theme.of(context).primaryColor,
                             toggleFullScreen: _toggleFullScreen,
+                            onEnd: _onEnd,
                           ),
                         )),
                     Expanded(

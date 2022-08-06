@@ -45,7 +45,9 @@ class _Home extends State<Home> {
             DrawerHeader(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                    fit: BoxFit.cover, image: AssetImage('cover.jpeg')),
+                    fit: BoxFit.cover,
+                    image: AssetImage('assets/cover.jpeg')
+                ),
                 color: Colors.indigo,
               ),
               child: Container(),

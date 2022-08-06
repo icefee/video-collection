@@ -1,10 +1,11 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import './type.dart';
 export './type.dart';
 
 class Api {
-  static String source = './videos.json';
+  static String source = kIsWeb ? './videos.json' : 'https://code-space.netlify.app/flutter/videos.json';
   static Future<RequestData?> getSourceData(String url) async {
     Response response = await get(
       Uri.parse(url)
