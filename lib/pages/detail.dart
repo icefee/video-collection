@@ -138,7 +138,6 @@ class _VideoDetail extends State<VideoDetail> {
                                       children: <Widget>[
                                         Container(
                                           padding: const EdgeInsets.all(8.0),
-                                          alignment: Alignment.center,
                                           child: Wrap(
                                             spacing: 8.0,
                                             runSpacing: 8.0,
@@ -152,8 +151,8 @@ class _VideoDetail extends State<VideoDetail> {
                                                   onTap: () => _playeEpisode(i),
                                                   child: Container(
                                                     width:
-                                                        constraints.maxWidth /
-                                                            6,
+                                                        (constraints.maxWidth - 48.0) /
+                                                            5,
                                                     decoration: BoxDecoration(
                                                         border: Border.all(
                                                             color: Theme.of(
