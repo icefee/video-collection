@@ -150,7 +150,7 @@ class _VideoDetail extends State<VideoDetail> {
                                       color: Colors.black54
                                     ),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
                                       children: <Widget>[
                                         Container(
                                           padding: const EdgeInsets.all(5.0),
