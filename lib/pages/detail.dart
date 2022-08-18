@@ -130,18 +130,14 @@ class _VideoDetail extends State<VideoDetail> {
                                 toggleFullScreen: _toggleFullScreen,
                                 onEnd: _onEnd,
                               ),
-                              AnimatedOpacity(
-                                duration: const Duration(milliseconds: 400),
-                                opacity: episodePickerShow ? 1 : 0,
-                                child: GestureDetector(
-                                  onTap: _hideEpisodePicker,
-                                  child: Container(
-                                    width: constraints.maxWidth,
-                                    height: constraints.maxWidth,
-                                    color: Colors.black26,
-                                  ),
+                              episodePickerShow ? GestureDetector(
+                                onTap: _hideEpisodePicker,
+                                child: Container(
+                                  width: constraints.maxWidth,
+                                  height: constraints.maxWidth,
+                                  color: Colors.black26,
                                 ),
-                              ),
+                              ) : Container(),
                               AnimatedPositioned(
                                 duration: const Duration(milliseconds: 200),
                                 curve: Curves.easeIn,
@@ -158,11 +154,15 @@ class _VideoDetail extends State<VideoDetail> {
                                       children: <Widget>[
                                         Container(
                                           padding: const EdgeInsets.all(5.0),
+                                          decoration: const BoxDecoration(
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                width: 1,
+                                                color: Colors.white24
+                                              )
+                                            )
+                                          ),
                                           child: const Text('选集', style: TextStyle(color: Colors.white)),
-                                        ),
-                                        const Divider(
-                                          height: 1.0,
-                                          color: Colors.white12,
                                         ),
                                         Expanded(
                                           child: ListView(
