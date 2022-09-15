@@ -1,6 +1,6 @@
 {
-    "name": "video_collection",
-    "short_name": "video_collection",
+    "name": "视频文件夹",
+    "short_name": "视频合集",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

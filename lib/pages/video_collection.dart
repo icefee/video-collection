@@ -27,7 +27,7 @@ class VideoCollection extends StatelessWidget {
             ),
             child: Padding(
               padding: const EdgeInsets.only(left: 5.0),
-              child: Text(section.section, style: const TextStyle(fontSize: 20.0)),
+              child: Text(section.section, style: const TextStyle(fontSize: 18.0)),
             ),
           ),
         ),

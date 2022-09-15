@@ -108,6 +108,7 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
   Future<void> _disposeErrorMsg() async {
     messageBanner?.close();
     await messageBanner?.closed;
+    messageBanner = null;
   }
 
   @override
