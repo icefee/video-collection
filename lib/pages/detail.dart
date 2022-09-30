@@ -138,16 +138,16 @@ class _VideoDetail extends State<VideoDetail> {
                                   color: Colors.black26,
                                 ),
                               ) : Container(),
-                              AnimatedPositioned(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeIn,
-                                top: 0,
-                                right: episodePickerShow ? 0 : -160.0,
+                              widget.video is Series ? AnimatedPositioned(
+                                  duration: const Duration(milliseconds: 200),
+                                  curve: Curves.easeIn,
+                                  top: 0,
+                                  right: episodePickerShow ? 0 : -160.0,
                                   child: Container(
                                     width: 150.0,
                                     height: constraints.maxHeight,
                                     decoration: const BoxDecoration(
-                                      color: Colors.black54
+                                        color: Colors.black54
                                     ),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -155,12 +155,12 @@ class _VideoDetail extends State<VideoDetail> {
                                         Container(
                                           padding: const EdgeInsets.all(5.0),
                                           decoration: const BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(
-                                                width: 1,
-                                                color: Colors.white24
+                                              border: Border(
+                                                  bottom: BorderSide(
+                                                      width: 1,
+                                                      color: Colors.white24
+                                                  )
                                               )
-                                            )
                                           ),
                                           child: const Text('选集', style: TextStyle(color: Colors.white)),
                                         ),
@@ -182,7 +182,7 @@ class _VideoDetail extends State<VideoDetail> {
                                       ],
                                     ),
                                   )
-                              )
+                              ) : Container()
                             ],
                           )
                       ),
