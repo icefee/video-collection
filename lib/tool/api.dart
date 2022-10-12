@@ -5,7 +5,7 @@ import './type.dart';
 export './type.dart';
 
 class Api {
-  static String source = kIsWeb ? './videos.json' : 'https://code-in-life.netlify.app/flutter/videos.json';
+  static String source = kIsWeb ? '/videos.json' : 'https://code-in-life.netlify.app/videos.json';
   static Future<RequestData?> getSourceData(String url) async {
     Response response = await get(
       Uri.parse(url)
