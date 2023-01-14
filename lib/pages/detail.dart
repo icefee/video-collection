@@ -54,6 +54,7 @@ class _VideoDetail extends State<VideoDetail> {
   void _setFullScreen() async {
     await SystemChrome.setPreferredOrientations(
         [DeviceOrientation.landscapeLeft]);
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     setState(() {
       isFullScreen = true;
     });
@@ -61,6 +62,7 @@ class _VideoDetail extends State<VideoDetail> {
 
   void _exitFullScreen() async {
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     setState(() {
       isFullScreen = false;
     });

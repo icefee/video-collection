@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../tool/api.dart';
-import '../pages/video_collection.dart';
+import './video_collection.dart';
+import './search.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -23,7 +24,7 @@ class _Home extends State<Home> {
   }
 
   Future<void> getVideoSource() async {
-    RequestData? requestData = await Api.getSourceData(Api.source);
+    VideoData? requestData = await Api.getSourceData(Api.source);
     if (requestData != null) {
       videos = requestData.videos;
       if (videos.isNotEmpty) {
@@ -38,6 +39,16 @@ class _Home extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('视频文件夹'),
+        actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (BuildContext context) => const SearchPage()
+                ));
+              },
+              icon: const Icon(Icons.search)
+          )
+        ],
       ),
       drawer: Drawer(
         child: Column(
