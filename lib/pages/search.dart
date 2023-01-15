@@ -39,6 +39,7 @@ class _SearchPage extends State<SearchPage> {
       VideoInfo? videoInfo = await Api.getVideoDetail(key, id);
       if (videoInfo != null) {
         VideoSource videoSource = videoInfo.dataList.first;
+        print(videoSource);
         String title = videoInfo.name;
         Video video = videoSource.urls.length > 1
             ? Series(title, videoSource.urls.length, '{0}',

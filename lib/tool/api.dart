@@ -5,7 +5,8 @@ import './type.dart';
 export './type.dart';
 
 class Api {
-  static String server = 'http://code-in-life.netlify.app';
+  static bool dev = false;
+  static String server = dev ? 'http://192.168.10.103:420' : 'https://code-in-life.netlify.app';
   static String staticBaseUrl = kIsWeb ? '' : server;
   static String source = '$staticBaseUrl/videos.json';
   static Future<VideoData?> getSourceData(String url) async {
