@@ -38,24 +38,22 @@ class _SearchPage extends State<SearchPage> {
     try {
       VideoInfo? videoInfo = await Api.getVideoDetail(key, id);
       if (videoInfo != null) {
-        VideoSource videoSource = videoInfo.dataList.firstWhere(
-            (e) => e.name.contains(RegExp('m3u8', caseSensitive: false)));
-        if (!context.mounted) return;
+        VideoSource videoSource = videoInfo.dataList.first;
         String title = videoInfo.name;
         Video video = videoSource.urls.length > 1
             ? Series(title, videoSource.urls.length, '{0}',
                 videoSource.urls.map((VideoItem item) => [item.url]).toList())
             : Film(title, videoSource.urls.first.url);
-
+        if (!mounted) return;
         Navigator.of(context).push(MaterialPageRoute(
             builder: (BuildContext context) => VideoDetail(video: video)));
       }
-      setState(() {
-        loading = false;
-      });
     } catch (err) {
       //
     }
+    setState(() {
+      loading = false;
+    });
   }
 
   @override
@@ -171,24 +169,36 @@ class _SearchPage extends State<SearchPage> {
                                                                     const TextStyle(
                                                                         fontSize:
                                                                             20)),
-                                                            Chip(
-                                                              label: Text(
-                                                                  video.type,
-                                                                  style: const TextStyle(
-                                                                      fontSize:
-                                                                          14)),
-                                                              backgroundColor:
-                                                                  Theme.of(
-                                                                          context)
-                                                                      .secondaryHeaderColor,
-                                                            ),
-                                                            Text(video.note,
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        16,
-                                                                    color: Colors
-                                                                            .grey[
-                                                                        500]))
+                                                            Row(
+                                                              children: [
+                                                                Chip(
+                                                                  label: Text(
+                                                                      video
+                                                                          .type,
+                                                                      style: const TextStyle(
+                                                                          fontSize:
+                                                                              14)),
+                                                                  backgroundColor:
+                                                                      Theme.of(
+                                                                              context)
+                                                                          .secondaryHeaderColor,
+                                                                ),
+                                                                Container(
+                                                                  margin: const EdgeInsets
+                                                                          .only(
+                                                                      left:
+                                                                          8.0),
+                                                                  child: Text(
+                                                                      video
+                                                                          .note,
+                                                                      style: TextStyle(
+                                                                          fontSize:
+                                                                              14,
+                                                                          color:
+                                                                              Colors.grey[500])),
+                                                                )
+                                                              ],
+                                                            )
                                                           ],
                                                         ),
                                                       )
