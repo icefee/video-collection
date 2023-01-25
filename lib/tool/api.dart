@@ -6,8 +6,8 @@ export './type.dart';
 
 class Api {
   static bool dev = false;
-  static String server = dev ? 'http://192.168.10.103:420' : 'https://code-in-life.netlify.app';
-  static String staticBaseUrl = kIsWeb ? '' : server;
+  static String server = dev ? 'http://127.0.0.1:420' : 'https://code-in-life.netlify.app';
+  static String staticBaseUrl = kIsWeb ? '' : 'https://code-in-life.stormkit.dev';
   static String source = '$staticBaseUrl/videos.json';
   static Future<VideoData?> getSourceData(String url) async {
     Response response = await get(Uri.parse(url));
