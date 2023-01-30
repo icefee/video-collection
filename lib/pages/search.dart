@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 import './detail.dart';
 import '../tool/api.dart';
@@ -19,6 +20,7 @@ class _SearchPage extends State<SearchPage> {
     setState(() {
       loading = true;
     });
+    removeSnackBar();
     try {
       String wd = s;
       bool prefer = false;
@@ -35,12 +37,10 @@ class _SearchPage extends State<SearchPage> {
         });
       }
     } catch (err) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('获取搜索结果失败'),
-        duration: const Duration(seconds: 30),
-        backgroundColor: Colors.red,
-        action: SnackBarAction(label: '重试', onPressed: () => getSearch(s)),
-      ));
+      showSnackBar('获取搜索结果失败', () => getSearch(s));
+      setState(() {
+        loading = false;
+      });
     }
   }
 
@@ -48,6 +48,7 @@ class _SearchPage extends State<SearchPage> {
     setState(() {
       loading = true;
     });
+    removeSnackBar();
     try {
       VideoInfo? videoInfo = await Api.getVideoDetail(key, id);
       if (videoInfo != null) {
@@ -65,21 +66,55 @@ class _SearchPage extends State<SearchPage> {
         throw 'failed';
       }
     } catch (err) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('获取内容详情失败'),
-        duration: const Duration(seconds: 30),
-        backgroundColor: Colors.red,
-        action:
-            SnackBarAction(label: '重试', onPressed: () => getVideoInfo(key, id)),
-      ));
+      showSnackBar('获取内容详情失败', () => getVideoInfo(key, id));
     }
     setState(() {
       loading = false;
     });
   }
 
+  void showSnackBar(String message, VoidCallback onRetry) {
+    removeSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.red,
+      action: SnackBarAction(
+        label: '重试',
+        onPressed: onRetry,
+        textColor: Colors.white,
+      ),
+    ));
+  }
+
+  void removeSnackBar() {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+  }
+
   Future<void> openLink(String url) =>
       launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+
+  Future<void> generateDataUrl(String key, int id) async {
+    removeSnackBar();
+    setState(() {
+      loading = true;
+    });
+    try {
+      VideoInfo? videoInfo = await Api.getVideoDetail(key, id);
+      if (null != videoInfo && mounted) {
+        Map infoMap = videoInfo.toMap();
+        String json = jsonEncode({'api': key, 'id': id, 'video': infoMap});
+        String dataUrl = Uri.encodeComponent(base64.encode(utf8.encode(json)));
+        openLink('${Api.staticBaseUrl}/video?d=$dataUrl');
+      } else {
+        throw 'failed';
+      }
+    } catch (err) {
+      showSnackBar('获取内容详情失败', () => generateDataUrl(key, id));
+    }
+    setState(() {
+      loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -231,21 +266,30 @@ class _SearchPage extends State<SearchPage> {
                                                                   ],
                                                                 ),
                                                                 Expanded(
-                                                                  child: Container(
-                                                                    alignment: Alignment.bottomLeft,
-                                                                    child: TextButton(
-                                                                      onPressed:
-                                                                          () async {
-                                                                        await openLink(
-                                                                            '${Api.server}/video/${videoList[sourceIndex].key}/${video.id}');
-                                                                      },
-                                                                      style: TextButton.styleFrom(
-                                                                          side:
-                                                                          BorderSide(width: 1.0, color: Theme.of(context).primaryColor)),
-                                                                      child: const Text(
-                                                                          '网页播放'),
-                                                                    ),
-                                                                  ),
+                                                                  child:
+                                                                      Container(
+                                                                          alignment: Alignment
+                                                                              .bottomLeft,
+                                                                          child:
+                                                                              Row(
+                                                                            children: [
+                                                                              TextButton(
+                                                                                onPressed: () async {
+                                                                                  await openLink('${Api.server}/video/${videoList[sourceIndex].key}/${video.id}');
+                                                                                },
+                                                                                style: TextButton.styleFrom(side: BorderSide(width: 1.0, color: Theme.of(context).primaryColor)),
+                                                                                child: const Text('网页播放'),
+                                                                              ),
+                                                                              const SizedBox(
+                                                                                width: 10,
+                                                                              ),
+                                                                              TextButton(
+                                                                                onPressed: () => generateDataUrl(videoList[sourceIndex].key, video.id),
+                                                                                style: TextButton.styleFrom(side: BorderSide(width: 1.0, color: Theme.of(context).primaryColor)),
+                                                                                child: const Text('数据链接'),
+                                                                              ),
+                                                                            ],
+                                                                          )),
                                                                 )
                                                               ],
                                                             ),
@@ -278,11 +322,16 @@ class _SearchPage extends State<SearchPage> {
                     offstage: !loading,
                     child: Container(
                       constraints: const BoxConstraints.expand(),
-                      child: const Center(
-                        child: SizedBox(
-                          width: 30.0,
-                          height: 30.0,
-                          child: CircularProgressIndicator(),
+                      alignment: Alignment.center,
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(4.0)),
+                        padding: const EdgeInsets.all(16.0),
+                        child: const CircularProgressIndicator(
+                          color: Colors.white,
                         ),
                       ),
                     ),

@@ -124,17 +124,64 @@ class SearchVideoItem {
 }
 
 class VideoInfo {
+  late int tid;
   late String name;
-  // late String note;
-  // late String pic;
+  late String note;
+  late String pic;
+  late String type;
+  late dynamic year;
   late List<VideoSource> dataList;
-  VideoInfo(this.name, this.dataList);
+  late String des;
+  String? actor;
+  String? area;
+  String? director;
+  String? lang;
+  late String last;
+  late dynamic state;
+  VideoInfo(this.tid, this.name, this.note, this.pic, this.type, this.year, this.dataList,
+      this.des,
+      this.last,
+      this.state,
+      {this.actor, this.area, this.director, this.lang});
 
   factory VideoInfo.fromBase64(String source) {
     String jsonStr = utf8.decode(base64.decoder.convert(source));
     Map data = jsonDecode(jsonStr);
-    return VideoInfo(data['name'],
-        (data['dataList'] as List).map((e) => VideoSource.fromMap(e)).toList());
+    return VideoInfo(
+      data['tid'],
+      data['name'],
+      data['note'],
+      data['pic'],
+      data['type'],
+      data['year'],
+      (data['dataList'] as List).map((e) => VideoSource.fromMap(e)).toList(),
+      data['des'],
+      data['last'],
+      data['state'],
+      actor: data['actor'],
+      area: data['area'],
+      director: data['director'],
+      lang: data['lang'],
+    );
+  }
+  
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'tid': tid,
+      'name': name,
+      'note': note,
+      'pic': pic,
+      'type': type,
+      'year': year,
+      'dataList': dataList.map((VideoSource source) => source.fromMap()).toList(),
+      'des': des,
+      'last': last,
+      'state': state,
+      'actor': actor,
+      'area': area,
+      'director': director,
+      'lang': lang
+    };
   }
 }
 
@@ -148,6 +195,13 @@ class VideoSource {
     return VideoSource(map['name'],
         (map['urls'] as List).map((e) => VideoItem.fromMap(e as Map)).toList());
   }
+
+  Map<String, dynamic> fromMap() {
+    return <String, dynamic>{
+      'name': name,
+      'urls': urls.map((VideoItem videoItem) => videoItem.toMap()).toList()
+    };
+  }
 }
 
 class VideoItem {
@@ -157,5 +211,12 @@ class VideoItem {
 
   factory VideoItem.fromMap(Map map) {
     return VideoItem(map['label'], map['url']);
+  }
+
+  Map<String, String> toMap() {
+    return <String, String>{
+      'label': label,
+      'url': url
+    };
   }
 }
