@@ -6,9 +6,10 @@ export './type.dart';
 
 class Api {
   static bool dev = false;
-  static String server = dev ? 'http://127.0.0.1:420' : 'https://code-in-life.netlify.app';
-  static String staticBaseUrl = kIsWeb ? '' : 'https://code-in-life.stormkit.dev';
-  static String source = '$staticBaseUrl/videos.json';
+  static String server =
+      dev ? 'http://127.0.0.1:420' : 'https://code-in-life.netlify.app';
+  static String staticBaseUrl = 'https://code-in-life.stormkit.dev';
+  static String source = '${kIsWeb ? '' : staticBaseUrl}/videos.json';
   static Future<VideoData?> getSourceData(String url) async {
     Response response = await get(Uri.parse(url));
     String json = utf8.decode(response.bodyBytes);
@@ -44,7 +45,8 @@ class Api {
   }
 
   static Future<VideoInfo?> getVideoDetail(String key, int id) async {
-    String api = '${Api.server}/video/api?api=$key&id=$id'; // /video/api?api=${site}&id=${id}
+    String api =
+        '${Api.server}/video/api?api=$key&id=$id'; // /video/api?api=${site}&id=${id}
     Response response = await get(Uri.parse(api));
     String? base64Str = base64JsonDataParser(response.body);
     if (base64Str != null) {

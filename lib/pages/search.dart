@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import './detail.dart';
 import '../tool/api.dart';
 import '../widgets/poster.dart';
@@ -19,7 +20,14 @@ class _SearchPage extends State<SearchPage> {
       loading = true;
     });
     try {
-      SearchVideoList result = await Api.getSearchVideo(SearchQuery(s, false));
+      String wd = s;
+      bool prefer = false;
+      if (wd.startsWith(r'$')) {
+        wd = wd.substring(1);
+        prefer = true;
+      }
+      SearchVideoList result =
+          await Api.getSearchVideo(SearchQuery(wd, prefer));
       if (mounted) {
         setState(() {
           loading = false;
@@ -27,7 +35,12 @@ class _SearchPage extends State<SearchPage> {
         });
       }
     } catch (err) {
-      //
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('获取搜索结果失败'),
+        duration: const Duration(seconds: 30),
+        backgroundColor: Colors.red,
+        action: SnackBarAction(label: '重试', onPressed: () => getSearch(s)),
+      ));
     }
   }
 
@@ -39,23 +52,34 @@ class _SearchPage extends State<SearchPage> {
       VideoInfo? videoInfo = await Api.getVideoDetail(key, id);
       if (videoInfo != null) {
         VideoSource videoSource = videoInfo.dataList.first;
-        print(videoSource);
         String title = videoInfo.name;
         Video video = videoSource.urls.length > 1
             ? Series(title, videoSource.urls.length, '{0}',
                 videoSource.urls.map((VideoItem item) => [item.url]).toList())
             : Film(title, videoSource.urls.first.url);
-        if (!mounted) return;
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (BuildContext context) => VideoDetail(video: video)));
+        if (mounted) {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (BuildContext context) => VideoDetail(video: video)));
+        }
+      } else {
+        throw 'failed';
       }
     } catch (err) {
-      //
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('获取内容详情失败'),
+        duration: const Duration(seconds: 30),
+        backgroundColor: Colors.red,
+        action:
+            SnackBarAction(label: '重试', onPressed: () => getVideoInfo(key, id)),
+      ));
     }
     setState(() {
       loading = false;
     });
   }
+
+  Future<void> openLink(String url) =>
+      launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
 
   @override
   Widget build(BuildContext context) {
@@ -140,70 +164,95 @@ class _SearchPage extends State<SearchPage> {
                                                     MainAxisAlignment
                                                         .spaceBetween,
                                                 children: [
-                                                  Row(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      SizedBox(
-                                                        width: 80,
-                                                        child: Poster(
-                                                            api: videoList[
-                                                                    sourceIndex]
-                                                                .key,
-                                                            id: video.id),
-                                                      ),
-                                                      Container(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(8.0),
-                                                        child: Column(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .start,
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Text(video.name,
-                                                                style:
-                                                                    const TextStyle(
-                                                                        fontSize:
-                                                                            20)),
-                                                            Row(
+                                                  Expanded(
+                                                    child: Row(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        SizedBox(
+                                                          width: 105,
+                                                          child: Poster(
+                                                              api: videoList[
+                                                                      sourceIndex]
+                                                                  .key,
+                                                              id: video.id),
+                                                        ),
+                                                        Expanded(
+                                                          child: Container(
+                                                            height: 105 * 1.5,
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
+                                                            child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .start,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
                                                               children: [
-                                                                Chip(
-                                                                  label: Text(
-                                                                      video
-                                                                          .type,
-                                                                      style: const TextStyle(
-                                                                          fontSize:
-                                                                              14)),
-                                                                  backgroundColor:
-                                                                      Theme.of(
-                                                                              context)
-                                                                          .secondaryHeaderColor,
+                                                                Text(
+                                                                  video.name,
+                                                                  style: const TextStyle(
+                                                                      fontSize:
+                                                                          20),
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  softWrap:
+                                                                      true,
+                                                                  maxLines: 2,
                                                                 ),
-                                                                Container(
-                                                                  margin: const EdgeInsets
-                                                                          .only(
-                                                                      left:
-                                                                          8.0),
-                                                                  child: Text(
-                                                                      video
-                                                                          .note,
-                                                                      style: TextStyle(
-                                                                          fontSize:
-                                                                              14,
-                                                                          color:
-                                                                              Colors.grey[500])),
+                                                                Row(
+                                                                  children: [
+                                                                    Chip(
+                                                                      label: Text(
+                                                                          video
+                                                                              .type,
+                                                                          style:
+                                                                              const TextStyle(fontSize: 14)),
+                                                                      backgroundColor:
+                                                                          Theme.of(context)
+                                                                              .secondaryHeaderColor,
+                                                                    ),
+                                                                    Container(
+                                                                      margin: const EdgeInsets
+                                                                              .only(
+                                                                          left:
+                                                                              8.0),
+                                                                      child: Text(
+                                                                          video
+                                                                              .note,
+                                                                          style: TextStyle(
+                                                                              fontSize: 14,
+                                                                              color: Colors.grey[500])),
+                                                                    )
+                                                                  ],
+                                                                ),
+                                                                Expanded(
+                                                                  child: Container(
+                                                                    alignment: Alignment.bottomLeft,
+                                                                    child: TextButton(
+                                                                      onPressed:
+                                                                          () async {
+                                                                        await openLink(
+                                                                            '${Api.server}/video/${videoList[sourceIndex].key}/${video.id}');
+                                                                      },
+                                                                      style: TextButton.styleFrom(
+                                                                          side:
+                                                                          BorderSide(width: 1.0, color: Theme.of(context).primaryColor)),
+                                                                      child: const Text(
+                                                                          '网页播放'),
+                                                                    ),
+                                                                  ),
                                                                 )
                                                               ],
-                                                            )
-                                                          ],
-                                                        ),
-                                                      )
-                                                    ],
+                                                            ),
+                                                          ),
+                                                        )
+                                                      ],
+                                                    ),
                                                   ),
                                                   const Icon(
                                                       Icons.arrow_forward_ios,
@@ -229,7 +278,6 @@ class _SearchPage extends State<SearchPage> {
                     offstage: !loading,
                     child: Container(
                       constraints: const BoxConstraints.expand(),
-                      color: Colors.white.withOpacity(.4),
                       child: const Center(
                         child: SizedBox(
                           width: 30.0,
