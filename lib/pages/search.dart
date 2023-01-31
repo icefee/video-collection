@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import './detail.dart';
 import '../tool/api.dart';
 import '../widgets/poster.dart';
@@ -13,8 +15,29 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPage extends State<SearchPage> {
+  int apiServer = 0;
   List<SearchVideo> videoList = [];
   bool loading = false;
+
+  final storage = const FlutterSecureStorage();
+
+  ScrollController listController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    restoreSetting();
+  }
+
+  Future<void> restoreSetting() async {
+    String? value = await storage.read(key: 'server_id');
+    if (value != null) {
+      setState(() {
+        apiServer = int.tryParse(value) ?? 0;
+      });
+    }
+  }
 
   Future<void> getSearch(String s) async {
     setState(() {
@@ -29,11 +52,15 @@ class _SearchPage extends State<SearchPage> {
         prefer = true;
       }
       SearchVideoList result =
-          await Api.getSearchVideo(SearchQuery(wd, prefer));
+          await Api.getSearchVideo(apiServer, SearchQuery(wd, prefer));
       if (mounted) {
         setState(() {
           loading = false;
           videoList = result.data;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          listController.animateTo(0,
+              duration: const Duration(milliseconds: 200), curve: Curves.ease);
         });
       }
     } catch (err) {
@@ -50,7 +77,7 @@ class _SearchPage extends State<SearchPage> {
     });
     removeSnackBar();
     try {
-      VideoInfo? videoInfo = await Api.getVideoDetail(key, id);
+      VideoInfo? videoInfo = await Api.getVideoDetail(apiServer, key, id);
       if (videoInfo != null) {
         VideoSource videoSource = videoInfo.dataList.first;
         String title = videoInfo.name;
@@ -99,7 +126,7 @@ class _SearchPage extends State<SearchPage> {
       loading = true;
     });
     try {
-      VideoInfo? videoInfo = await Api.getVideoDetail(key, id);
+      VideoInfo? videoInfo = await Api.getVideoDetail(apiServer, key, id);
       if (null != videoInfo && mounted) {
         Map infoMap = videoInfo.toMap();
         String json = jsonEncode({'api': key, 'id': id, 'video': infoMap});
@@ -116,11 +143,64 @@ class _SearchPage extends State<SearchPage> {
     });
   }
 
+  Future<void> showSetting() async {
+    int? serverId = await showDialog<int>(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            title: const Text('选择服务器'),
+            contentPadding: const EdgeInsets.all(10.0),
+            children: [
+              const SizedBox(
+                height: 10.0,
+              ),
+              TextButton(
+                  onPressed: () => Navigator.pop(context, 0),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Radio<int>(
+                          value: 0,
+                          groupValue: apiServer,
+                          onChanged: (int? value) => Navigator.pop(context, 0)),
+                      const Text('netlify.app')
+                    ],
+                  )),
+              TextButton(
+                  onPressed: () => Navigator.pop(context, 1),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Radio<int>(
+                          value: 1,
+                          groupValue: apiServer,
+                          onChanged: (int? value) => Navigator.pop(context, 0)),
+                      const Text('onrender.com')
+                    ],
+                  ))
+            ],
+          );
+        });
+    if (serverId != null) {
+      setState(() {
+        apiServer = serverId;
+      });
+      storage.write(key: 'server_id', value: serverId.toString());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return Scaffold(
-      appBar: AppBar(title: const Text('搜索')),
+      appBar: AppBar(
+        title: const Text('搜索'),
+        actions: [
+          IconButton(onPressed: showSetting, icon: const Icon(Icons.settings))
+        ],
+      ),
       backgroundColor: Colors.grey[200],
       body: Column(
         children: [
@@ -159,6 +239,7 @@ class _SearchPage extends State<SearchPage> {
               child: Stack(
             children: [
               ListView(
+                controller: listController,
                 padding: const EdgeInsets.all(8.0),
                 children: videoList
                     .asMap()
@@ -170,7 +251,24 @@ class _SearchPage extends State<SearchPage> {
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Text(videoList[sourceIndex].name),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(videoList[sourceIndex].name),
+                                    RatingBarIndicator(
+                                      rating: videoList[sourceIndex].rating,
+                                      itemBuilder: (context, index) => Icon(
+                                          Icons.star,
+                                          color:
+                                              Theme.of(context).primaryColor),
+                                      itemCount: 5,
+                                      itemSize: 16.0,
+                                      direction: Axis.horizontal,
+                                    )
+                                  ],
+                                ),
                               ),
                               Column(
                                 children: videoList[sourceIndex]
@@ -208,6 +306,8 @@ class _SearchPage extends State<SearchPage> {
                                                         SizedBox(
                                                           width: 105,
                                                           child: Poster(
+                                                              serverId:
+                                                                  apiServer,
                                                               api: videoList[
                                                                       sourceIndex]
                                                                   .key,
@@ -275,9 +375,9 @@ class _SearchPage extends State<SearchPage> {
                                                                             children: [
                                                                               TextButton(
                                                                                 onPressed: () async {
-                                                                                  await openLink('${Api.server}/video/${videoList[sourceIndex].key}/${video.id}');
+                                                                                  await openLink('${Api.getServer(apiServer)}/video/${videoList[sourceIndex].key}/${video.id}');
                                                                                 },
-                                                                                style: TextButton.styleFrom(side: BorderSide(width: 1.0, color: Theme.of(context).primaryColor)),
+                                                                                style: TextButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),
                                                                                 child: const Text('网页播放'),
                                                                               ),
                                                                               const SizedBox(
@@ -327,7 +427,7 @@ class _SearchPage extends State<SearchPage> {
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(
-                            color: Colors.black,
+                            color: Colors.black.withAlpha(200),
                             borderRadius: BorderRadius.circular(4.0)),
                         padding: const EdgeInsets.all(16.0),
                         child: const CircularProgressIndicator(

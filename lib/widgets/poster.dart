@@ -1,15 +1,16 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import '../tool/api.dart';
 
 enum PendingState { none, pending, done, fail }
 
 class Poster extends StatefulWidget {
+  final int serverId;
   final String api;
   final int id;
 
-  const Poster({super.key, required this.api, required this.id});
+  const Poster(
+      {super.key, required this.serverId, required this.api, required this.id});
 
   @override
   State<StatefulWidget> createState() => _Poster();
@@ -33,7 +34,8 @@ class _Poster extends State<Poster> {
     });
 
     try {
-      String? data = await Api.getVideoPoster(widget.api, widget.id);
+      String? data =
+          await Api.getVideoPoster(widget.serverId, widget.api, widget.id);
       if (data != null) {
         setState(() {
           pendingState = PendingState.done;
@@ -42,8 +44,7 @@ class _Poster extends State<Poster> {
       } else {
         throw const HttpException('timeout');
       }
-    }
-    catch (err) {
+    } catch (err) {
       if (mounted) {
         setState(() {
           pendingState = PendingState.fail;
