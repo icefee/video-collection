@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../tool/api.dart';
 import './video_collection.dart';
@@ -39,16 +40,19 @@ class _Home extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('视频文件夹'),
-        actions: [
-          IconButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (BuildContext context) => const SearchPage()
-                ));
-              },
-              icon: const Icon(Icons.search)
-          )
-        ],
+        actions: kIsWeb
+            ? []
+            : [
+                IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  const SearchPage()));
+                    },
+                    icon: const Icon(Icons.search))
+              ],
       ),
       drawer: Drawer(
         child: Column(
@@ -56,9 +60,7 @@ class _Home extends State<Home> {
             DrawerHeader(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: AssetImage('assets/cover.jpeg')
-                ),
+                    fit: BoxFit.cover, image: AssetImage('assets/cover.jpeg')),
                 color: Colors.indigo,
               ),
               child: Container(),
@@ -82,8 +84,7 @@ class _Home extends State<Home> {
                         Icons.arrow_forward_ios,
                         color: Colors.grey,
                         size: 16.0,
-                      )
-                  );
+                      ));
                 },
                 separatorBuilder: (BuildContext context, int index) =>
                     Divider(height: 1, color: Colors.grey[300]),
