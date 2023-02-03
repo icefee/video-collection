@@ -144,42 +144,41 @@ class _SearchPage extends State<SearchPage> {
   }
 
   Future<void> showSetting() async {
+    List<String> servers = ['netlify.app', 'onrender.com'];
     int? serverId = await showDialog<int>(
         context: context,
         builder: (BuildContext context) {
           return SimpleDialog(
             title: const Text('选择服务器'),
+            titleTextStyle:
+                const TextStyle(fontSize: 17.0, color: Colors.black),
             contentPadding: const EdgeInsets.all(10.0),
             children: [
               const SizedBox(
                 height: 10.0,
               ),
-              TextButton(
-                  onPressed: () => Navigator.pop(context, 0),
-                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Radio<int>(
-                          value: 0,
-                          groupValue: apiServer,
-                          onChanged: (int? value) => Navigator.pop(context, 0)),
-                      const Text('netlify.app')
-                    ],
-                  )),
-              TextButton(
-                  onPressed: () => Navigator.pop(context, 1),
-                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Radio<int>(
-                          value: 1,
-                          groupValue: apiServer,
-                          onChanged: (int? value) => Navigator.pop(context, 0)),
-                      const Text('onrender.com')
-                    ],
-                  ))
+              ...servers
+                  .asMap()
+                  .keys
+                  .map((int index) => TextButton(
+                      onPressed: () => Navigator.pop(context, index),
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Radio<int>(
+                              value: index,
+                              groupValue: apiServer,
+                              onChanged: (int? value) =>
+                                  Navigator.pop(context, index)),
+                          Text(servers[index],
+                              style: TextStyle(
+                                  color: apiServer == index
+                                      ? Theme.of(context).primaryColor
+                                      : Colors.black))
+                        ],
+                      )))
+                  .toList(),
             ],
           );
         });
