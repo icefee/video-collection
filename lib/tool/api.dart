@@ -7,7 +7,7 @@ export './type.dart';
 class Api {
   static bool dev = false;
   static String devServer = 'http://127.0.0.1:420';
-  static String staticBaseUrl = 'https://code-in-life.stormkit.dev';
+  static String staticBaseUrl = 'https://cif.stormkit.dev';
   static String source = '${kIsWeb ? '' : staticBaseUrl}/videos.json';
   static Future<VideoData?> getSourceData(String url) async {
     Response response = await get(Uri.parse(url));
