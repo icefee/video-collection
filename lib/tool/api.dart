@@ -6,8 +6,8 @@ import './type.dart';
 export './type.dart';
 
 class Api {
-  static bool dev = false;
-  static String devServer = 'http://localhost:420';
+  static bool dev = true;
+  static String devServer = 'http://192.168.10.104:420';
   static String staticBaseUrl = 'https://c.stormkit.dev';
   static String source = '${kIsWeb ? '' : staticBaseUrl}/videos.json';
 

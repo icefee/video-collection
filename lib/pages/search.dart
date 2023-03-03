@@ -30,13 +30,6 @@ class _SearchPage extends State<SearchPage> {
     restoreSetting();
   }
 
-  @override
-  void dispose() {
-    removeSnackBar();
-    // TODO: implement dispose
-    super.dispose();
-  }
-
   Future<void> restoreSetting() async {
     String? value = await storage.read(key: 'server_id');
     if (value != null) {
@@ -118,7 +111,6 @@ class _SearchPage extends State<SearchPage> {
     removeSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
-      backgroundColor: Colors.red,
       action: SnackBarAction(
         label: '重试',
         onPressed: onRetry,
@@ -128,7 +120,7 @@ class _SearchPage extends State<SearchPage> {
   }
 
   void removeSnackBar() {
-    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).clearSnackBars();
   }
 
   Future<void> openLink(String url) =>
@@ -215,43 +207,43 @@ class _SearchPage extends State<SearchPage> {
         ],
       ),
       backgroundColor: Colors.grey[200],
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(5.0)),
-              padding: const EdgeInsets.only(left: 10.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      autofocus: true,
-                      textInputAction: TextInputAction.search,
-                      decoration: const InputDecoration(
-                          border: InputBorder.none, hintText: '输入关键词搜索'),
-                      onSubmitted: (String text) {
-                        if (text.trim().isNotEmpty) {
-                          getSearch(text);
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 40,
-                    child: Icon(Icons.search, color: Colors.grey),
-                  )
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-              child: Stack(
+          Column(
             children: [
-              ListView(
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(5.0)),
+                  padding: const EdgeInsets.only(left: 10.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          autofocus: true,
+                          textInputAction: TextInputAction.search,
+                          decoration: const InputDecoration(
+                              border: InputBorder.none, hintText: '输入关键词搜索'),
+                          onSubmitted: (String text) {
+                            if (text.trim().isNotEmpty) {
+                              getSearch(text);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 40,
+                        child: Icon(Icons.search, color: Colors.grey),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                  child: ListView(
                 controller: listController,
                 padding: const EdgeInsets.all(8.0),
                 children: videoList
@@ -425,32 +417,32 @@ class _SearchPage extends State<SearchPage> {
                           ),
                         ))
                     .toList(),
-              ),
-              Positioned(
-                  left: 0,
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: Offstage(
-                    offstage: !loading,
-                    child: Container(
-                      constraints: const BoxConstraints.expand(),
-                      alignment: Alignment.center,
-                      child: Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                            color: Colors.black.withAlpha(200),
-                            borderRadius: BorderRadius.circular(4.0)),
-                        padding: const EdgeInsets.all(16.0),
-                        child: const CircularProgressIndicator(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ))
+              ))
             ],
-          ))
+          ),
+          Positioned(
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              child: Offstage(
+                offstage: !loading,
+                child: Container(
+                  constraints: const BoxConstraints.expand(),
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                        color: Colors.black.withAlpha(200),
+                        borderRadius: BorderRadius.circular(4.0)),
+                    padding: const EdgeInsets.all(16.0),
+                    child: const CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ))
         ],
       ),
     );
