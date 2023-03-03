@@ -15,13 +15,15 @@ class NetworkVideoPlayer extends StatefulWidget {
   final Color themeColor;
   final VoidCallback? toggleFullScreen;
   final VoidCallback? onEnd;
+  final ValueChanged<bool>? onControlsVisibleStateChange;
 
   const NetworkVideoPlayer(
       {Key? key,
       required this.url,
       this.themeColor = Colors.blue,
       this.toggleFullScreen,
-      this.onEnd})
+      this.onEnd,
+      this.onControlsVisibleStateChange})
       : super(key: key);
 
   @override
@@ -68,7 +70,6 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
     try {
       await _controller.initialize();
     } catch (err) {
-
       setState(() {
         failed = true;
       });
@@ -153,27 +154,31 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
             Offstage(
               offstage: failed,
               child: ControlsOverlay(
-                  controller: _controller,
-                  pending: pending,
-                  toggleFullScreen: () => widget.toggleFullScreen?.call()),
+                controller: _controller,
+                pending: pending,
+                toggleFullScreen: () => widget.toggleFullScreen?.call(),
+                onControlsVisibleStateChange:
+                    widget.onControlsVisibleStateChange,
+              ),
             )
           ],
-        )
-    );
+        ));
   }
 }
 
 class ControlsOverlay extends StatefulWidget {
+  final VideoPlayerController controller;
+  final bool pending;
+  final VoidCallback toggleFullScreen;
+  final ValueChanged<bool>? onControlsVisibleStateChange;
+
   const ControlsOverlay(
       {Key? key,
       required this.controller,
       required this.pending,
-      required this.toggleFullScreen})
+      required this.toggleFullScreen,
+      this.onControlsVisibleStateChange})
       : super(key: key);
-
-  final VideoPlayerController controller;
-  final bool pending;
-  final VoidCallback toggleFullScreen;
 
   @override
   State<ControlsOverlay> createState() => _ControlsOverlay();
@@ -188,14 +193,19 @@ class _ControlsOverlay extends State<ControlsOverlay> {
       if (widget.controller.value.isPlaying) {
         widget.controller.pause();
         setWakelock(false);
-        setState(() {
-          controlsVisible = true;
-        });
+        _toggleControlsVisible(true);
       } else {
         widget.controller.play();
         setWakelock(true);
       }
     }
+  }
+
+  void _toggleControlsVisible(bool visible) {
+    setState(() {
+      controlsVisible = visible;
+    });
+    widget.onControlsVisibleStateChange?.call(visible);
   }
 
   String timeFormatter(Duration d) {
@@ -220,16 +230,12 @@ class _ControlsOverlay extends State<ControlsOverlay> {
       children: <Widget>[
         GestureDetector(
           onTap: () {
-            setState(() {
-              controlsVisible = !controlsVisible;
-            });
+            _toggleControlsVisible(!controlsVisible);
           },
           onDoubleTap: _togglePlay,
           onHorizontalDragStart: (DragStartDetails details) {
             originOffset = details.globalPosition.dx;
-            setState(() {
-              controlsVisible = true;
-            });
+            _toggleControlsVisible(true);
           },
           onHorizontalDragUpdate: (DragUpdateDetails details) {
             if (widget.controller.value.isInitialized) {

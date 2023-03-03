@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import './type.dart';
@@ -6,19 +7,41 @@ export './type.dart';
 
 class Api {
   static bool dev = false;
-  static String devServer = 'http://127.0.0.1:420';
-  static String staticBaseUrl = 'https://cif.stormkit.dev';
+  static String devServer = 'http://localhost:420';
+  static String staticBaseUrl = 'https://c.stormkit.dev';
   static String source = '${kIsWeb ? '' : staticBaseUrl}/videos.json';
-  static Future<VideoData?> getSourceData(String url) async {
-    Response response = await get(Uri.parse(url));
-    String json = utf8.decode(response.bodyBytes);
-    Map videoData = jsonDecode(json);
-    VideoData requestData = VideoData.fromMap(videoData);
-    return requestData;
+
+  static Future<T?> getJson<T>(String url) async {
+    try {
+      Response response = await get(Uri.parse(url));
+      String json = utf8.decode(response.bodyBytes);
+      T data = jsonDecode(json);
+      return data;
+    } catch (err) {
+      return null;
+    }
   }
 
-  static String? base64JsonDataParser(String source) {
-    return RegExp(r'[a-zA-Z\d/+=]{100,}').firstMatch(source)?[0];
+  static Future<T?> getApiJson<T>(String url) async {
+    try {
+      Map? data = await getJson<Map>(url);
+      if (data == null) {
+        throw const SocketException('network error');
+      }
+      ApiResponse<T> result = ApiResponse.fromMap<T>(data);
+      if (result.code == 0) {
+        return result.data;
+      } else {
+        throw result.msg;
+      }
+    } catch (err) {
+      return null;
+    }
+  }
+
+  static Future<VideoData?> getSourceData(String url) async {
+    Map? videoData = await getJson<Map>(url);
+    return videoData != null ? VideoData.fromMap(videoData) : null;
   }
 
   static String getServer(int serverId) {
@@ -33,53 +56,46 @@ class Api {
 
   static String getSearchApi(int serverId) {
     String server = getServer(serverId);
-    if (serverId < 1) {
-      return '$server/video/search/api';
-    }
-    return '$server/video/search/proxy';
+    return '$server/api/video/list';
   }
 
   static String getPosterApi(int serverId, String key, int id) {
-    return '${getServer(serverId)}/video/$key/$id/poster';
+    String server = getServer(serverId);
+    if (serverId == 0) {
+      return '$server/api/video/$key/$id?type=poster';
+    }
+    return '$server/api/video?api=$key&id=$id?type=poster';
   }
 
-  static String getDetailApi(int serverId) {
-    return '${getServer(serverId)}/video/api';
+  static String getDetailApi(int serverId, String key, int id) {
+    String server = getServer(serverId);
+    if (serverId == 0) {
+      return '$server/api/video/$key/$id';
+    }
+    return '$server/api/video?api=$key&id=$id';
   }
 
-  static Future<SearchVideoList> getSearchVideo(
+  static Future<SearchVideoList?> getSearchVideo(
       int serverId, SearchQuery query) async {
     String searchUrl = '${getSearchApi(serverId)}?s=${query.s}';
     if (query.prefer18) {
       searchUrl += '&prefer=18';
     }
-    Response response = await get(Uri.parse(searchUrl));
-    String? base64Str = base64JsonDataParser(response.body);
-    if (base64Str == null) {
-      return SearchVideoList([]);
-    }
-    SearchVideoList searchVideoList = SearchVideoList.fromBase64(base64Str);
-    return searchVideoList;
+    List? result = await getApiJson(searchUrl);
+    return result != null ? SearchVideoList.fromMap(result) : null;
   }
 
   static Future<String?> getVideoPoster(
       int serverId, String key, int id) async {
     String api = getPosterApi(serverId, key, id);
-    Response response = await get(Uri.parse(api));
-    String? matchedImage = RegExp(r'https?://.+?\.((jpe?|pn)g|webp)')
-        .firstMatch(response.body)?[0];
-    return matchedImage;
+    String? result = await getApiJson(api);
+    return result;
   }
 
   static Future<VideoInfo?> getVideoDetail(
       int serverId, String key, int id) async {
-    String api =
-        '${getDetailApi(serverId)}?api=$key&id=$id';
-    Response response = await get(Uri.parse(api));
-    String? base64Str = base64JsonDataParser(response.body);
-    if (base64Str != null) {
-      return VideoInfo.fromBase64(base64Str);
-    }
-    return null;
+    String api = getDetailApi(serverId, key, id);
+    Map? result = await getApiJson(api);
+    return result != null ? VideoInfo.fromMap(result) : null;
   }
 }

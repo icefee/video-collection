@@ -53,12 +53,20 @@ class _Poster extends State<Poster> {
     }
   }
 
+  @override
+  void didUpdateWidget(covariant Poster oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.api != oldWidget.api || widget.id != oldWidget.id) {
+      getPosterUrl();
+    }
+  }
+
   Widget get loadFail {
-    return Container(
-      color: Colors.red[200],
-      child: const Center(
-        child: Text('加载失败', style: TextStyle(fontSize: 12.0)),
-      ),
+    return Image.network(
+      '${Api.staticBaseUrl}/assets/image_fail.jpg',
+      fit: BoxFit.cover,
     );
   }
 

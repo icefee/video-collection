@@ -30,6 +30,13 @@ class _SearchPage extends State<SearchPage> {
     restoreSetting();
   }
 
+  @override
+  void dispose() {
+    removeSnackBar();
+    // TODO: implement dispose
+    super.dispose();
+  }
+
   Future<void> restoreSetting() async {
     String? value = await storage.read(key: 'server_id');
     if (value != null) {
@@ -51,17 +58,24 @@ class _SearchPage extends State<SearchPage> {
         wd = wd.substring(1);
         prefer = true;
       }
-      SearchVideoList result =
+      SearchVideoList? result =
           await Api.getSearchVideo(apiServer, SearchQuery(wd, prefer));
       if (mounted) {
         setState(() {
           loading = false;
-          videoList = result.data;
         });
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          listController.animateTo(0,
-              duration: const Duration(milliseconds: 200), curve: Curves.ease);
-        });
+        if (result != null) {
+          setState(() {
+            videoList = result.data;
+          });
+          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+            listController.animateTo(0,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.ease);
+          });
+        } else {
+          throw 'Get search result failed.';
+        }
       }
     } catch (err) {
       showSnackBar('获取搜索结果失败', () => getSearch(s));

@@ -78,6 +78,10 @@ class SearchVideoList {
     List data = jsonDecode(jsonStr);
     return SearchVideoList(data.map((e) => SearchVideo.fromMap(e)).toList());
   }
+
+  static SearchVideoList fromMap(List data) {
+    return SearchVideoList(data.map((e) => SearchVideo.fromMap(e)).toList());
+  }
 }
 
 class SearchVideo {
@@ -147,21 +151,25 @@ class VideoInfo {
   factory VideoInfo.fromBase64(String source) {
     String jsonStr = utf8.decode(base64.decoder.convert(source));
     Map data = jsonDecode(jsonStr);
+    return VideoInfo.fromMap(data);
+  }
+
+  factory VideoInfo.fromMap(Map map) {
     return VideoInfo(
-      data['tid'],
-      data['name'],
-      data['note'],
-      data['pic'],
-      data['type'],
-      data['year'],
-      (data['dataList'] as List).map((e) => VideoSource.fromMap(e)).toList(),
-      data['des'],
-      data['last'],
-      data['state'],
-      actor: data['actor'],
-      area: data['area'],
-      director: data['director'],
-      lang: data['lang'],
+      map['tid'],
+      map['name'],
+      map['note'],
+      map['pic'],
+      map['type'],
+      map['year'],
+      (map['dataList'] as List).map((e) => VideoSource.fromMap(e)).toList(),
+      map['des'],
+      map['last'],
+      map['state'],
+      actor: map['actor'],
+      area: map['area'],
+      director: map['director'],
+      lang: map['lang'],
     );
   }
   
@@ -218,5 +226,17 @@ class VideoItem {
       'label': label,
       'url': url
     };
+  }
+}
+
+class ApiResponse<T> {
+  late int code;
+  late T data;
+  late String msg;
+
+  ApiResponse(this.code, this.data, this.msg);
+
+  static fromMap<E>(Map map) {
+    return ApiResponse<E>(map['code'], map['data'], map['msg']);
   }
 }
