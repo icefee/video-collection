@@ -55,38 +55,12 @@ class Api {
     ][serverId];
   }
 
-  static String getSearchApi(int serverId) {
-    String server = getServer(serverId);
-    return '$server/api/video/list';
-  }
-
-  static String getPosterApi(int serverId, String key, int id) {
-    String server = getServer(serverId);
-    if (serverId == 1) {
-      return '$server/api/video?api=$key&id=$id?type=poster';
-    }
-    return '$server/api/video/$key/$id?type=poster';
-  }
-
-  static String getDetailApi(int serverId, String key, int id) {
-    String server = getServer(serverId);
-    if (serverId == 1) {
-      return '$server/api/video?api=$key&id=$id';
-    }
-    return '$server/api/video/$key/$id';
-  }
-
-  static String getDetailUrl(int serverId, String key, int id) {
-    String server = getServer(serverId);
-    if (serverId < 2) {
-      return '$server/video/$key/$id';
-    }
-    return '$server/video/?api=$key&id=$id';
-  }
+  static String getDetailUrl(int serverId, String key, int id) =>
+      '${getServer(serverId)}/video/$key/$id';
 
   static Future<SearchVideoList?> getSearchVideo(
       int serverId, SearchQuery query) async {
-    String searchUrl = '${getSearchApi(serverId)}?s=${query.s}';
+    String searchUrl = '${getServer(serverId)}/api/video/list?s=${query.s}';
     if (query.prefer18) {
       searchUrl += '&prefer=18';
     }
@@ -96,14 +70,14 @@ class Api {
 
   static Future<String?> getVideoPoster(
       int serverId, String key, int id) async {
-    String api = getPosterApi(serverId, key, id);
+    String api = '${getServer(serverId)}/api/video/$key/$id?type=poster';
     String? result = await getApiJson(api);
     return result;
   }
 
   static Future<VideoInfo?> getVideoDetail(
       int serverId, String key, int id) async {
-    String api = getDetailApi(serverId, key, id);
+    String api = '${getServer(serverId)}/api/video/$key/$id';
     Map? result = await getApiJson(api);
     return result != null ? VideoInfo.fromMap(result) : null;
   }

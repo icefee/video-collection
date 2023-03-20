@@ -18,6 +18,9 @@ class _SearchPage extends State<SearchPage> {
   int apiServer = 0;
   List<SearchVideo> videoList = [];
   bool loading = false;
+  String searchKeyword = '';
+
+  TextEditingController searchFieldController = TextEditingController();
 
   final storage = const FlutterSecureStorage();
 
@@ -220,25 +223,57 @@ class _SearchPage extends State<SearchPage> {
                       border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(5.0)),
                   padding: const EdgeInsets.only(left: 10.0),
-                  child: Row(
+                  child: Stack(
+                    clipBehavior: Clip.hardEdge,
                     children: [
-                      Expanded(
-                        child: TextField(
-                          autofocus: true,
-                          textInputAction: TextInputAction.search,
-                          decoration: const InputDecoration(
-                              border: InputBorder.none, hintText: '输入关键词搜索'),
-                          onSubmitted: (String text) {
-                            if (text.trim().isNotEmpty) {
-                              getSearch(text);
-                            }
-                          },
-                        ),
+                      Row(
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(right: 8),
+                            child: SizedBox(
+                              width: 25,
+                              child: Icon(Icons.search, color: Colors.grey),
+                            ),
+                          ),
+                          Expanded(
+                            child: TextField(
+                              autofocus: true,
+                              controller: searchFieldController,
+                              textInputAction: TextInputAction.search,
+                              decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: '输入关键词搜索'),
+                              onChanged: (String text) {
+                                setState(() {
+                                  searchKeyword = text;
+                                });
+                              },
+                              onSubmitted: (String text) {
+                                if (text.trim().isNotEmpty) {
+                                  getSearch(text);
+                                }
+                              },
+                            ),
+                          )
+                        ],
                       ),
-                      const SizedBox(
-                        width: 40,
-                        child: Icon(Icons.search, color: Colors.grey),
-                      )
+                      Positioned(
+                          right: 10,
+                          top: 13,
+                          child: AnimatedScale(
+                            scale: searchKeyword.isNotEmpty ? 1 : 0,
+                            duration: const Duration(milliseconds: 200),
+                            child: InkWell(
+                              child:
+                                  const Icon(Icons.close, color: Colors.grey),
+                              onTap: () {
+                                searchFieldController.text = '';
+                                setState(() {
+                                  searchKeyword = '';
+                                });
+                              },
+                            ),
+                          ))
                     ],
                   ),
                 ),
@@ -381,9 +416,7 @@ class _SearchPage extends State<SearchPage> {
                                                                             children: [
                                                                               TextButton(
                                                                                 onPressed: () async {
-                                                                                  await openLink(
-                                                                                    Api.getDetailUrl(apiServer, videoList[sourceIndex].key, video.id)
-                                                                                  );
+                                                                                  await openLink(Api.getDetailUrl(apiServer, videoList[sourceIndex].key, video.id));
                                                                                 },
                                                                                 style: TextButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),
                                                                                 child: const Text('网页播放'),
