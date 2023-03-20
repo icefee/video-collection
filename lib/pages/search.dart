@@ -111,6 +111,7 @@ class _SearchPage extends State<SearchPage> {
     removeSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
+      backgroundColor: Colors.redAccent,
       action: SnackBarAction(
         label: '重试',
         onPressed: onRetry,
@@ -150,7 +151,7 @@ class _SearchPage extends State<SearchPage> {
   }
 
   Future<void> showSetting() async {
-    List<String> servers = ['netlify.app', 'onrender.com'];
+    List<String> servers = ['netlify.app', 'onrender.com', 'gatsbyjs.io'];
     int? serverId = await showDialog<int>(
         context: context,
         builder: (BuildContext context) {
@@ -380,7 +381,9 @@ class _SearchPage extends State<SearchPage> {
                                                                             children: [
                                                                               TextButton(
                                                                                 onPressed: () async {
-                                                                                  await openLink('${Api.getServer(apiServer)}/video/${videoList[sourceIndex].key}/${video.id}');
+                                                                                  await openLink(
+                                                                                    Api.getDetailUrl(apiServer, videoList[sourceIndex].key, video.id)
+                                                                                  );
                                                                                 },
                                                                                 style: TextButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),
                                                                                 child: const Text('网页播放'),

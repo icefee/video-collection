@@ -6,7 +6,7 @@ import './type.dart';
 export './type.dart';
 
 class Api {
-  static bool dev = true;
+  static bool dev = false;
   static String devServer = 'http://192.168.10.104:420';
   static String staticBaseUrl = 'https://c.stormkit.dev';
   static String source = '${kIsWeb ? '' : staticBaseUrl}/videos.json';
@@ -49,8 +49,9 @@ class Api {
       return devServer;
     }
     return [
-      'https://code-in-life.netlify.app',
-      'https://code-in-life.onrender.com'
+      'https://cik.netlify.app',
+      'https://cil.onrender.com',
+      'https://cil.gatsbyjs.io'
     ][serverId];
   }
 
@@ -61,18 +62,26 @@ class Api {
 
   static String getPosterApi(int serverId, String key, int id) {
     String server = getServer(serverId);
-    if (serverId == 0) {
-      return '$server/api/video/$key/$id?type=poster';
+    if (serverId == 1) {
+      return '$server/api/video?api=$key&id=$id?type=poster';
     }
-    return '$server/api/video?api=$key&id=$id?type=poster';
+    return '$server/api/video/$key/$id?type=poster';
   }
 
   static String getDetailApi(int serverId, String key, int id) {
     String server = getServer(serverId);
-    if (serverId == 0) {
-      return '$server/api/video/$key/$id';
+    if (serverId == 1) {
+      return '$server/api/video?api=$key&id=$id';
     }
-    return '$server/api/video?api=$key&id=$id';
+    return '$server/api/video/$key/$id';
+  }
+
+  static String getDetailUrl(int serverId, String key, int id) {
+    String server = getServer(serverId);
+    if (serverId < 2) {
+      return '$server/video/$key/$id';
+    }
+    return '$server/video/?api=$key&id=$id';
   }
 
   static Future<SearchVideoList?> getSearchVideo(
