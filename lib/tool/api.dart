@@ -51,7 +51,7 @@ class Api {
     return [
       'https://cik.netlify.app',
       'https://cil.onrender.com',
-      'https://cil.gatsbyjs.io'
+      'https://apps.gatsbyjs.io'
     ][serverId];
   }
 
@@ -68,11 +68,9 @@ class Api {
     return result != null ? SearchVideoList.fromMap(result) : null;
   }
 
-  static Future<String?> getVideoPoster(
-      int serverId, String key, int id) async {
-    String api = '${getServer(serverId)}/api/video/$key/$id?type=poster';
-    String? result = await getApiJson(api);
-    return result;
+  static String getVideoPoster(
+      int serverId, String key, int id) {
+    return '${getServer(serverId)}/api/video/$key/$id?type=poster';
   }
 
   static Future<VideoInfo?> getVideoDetail(

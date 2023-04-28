@@ -347,12 +347,13 @@ class _SearchPage extends State<SearchPage> {
                                                         SizedBox(
                                                           width: 105,
                                                           child: Poster(
-                                                              serverId:
-                                                                  apiServer,
-                                                              api: videoList[
-                                                                      sourceIndex]
-                                                                  .key,
-                                                              id: video.id),
+                                                            src: Api.getVideoPoster(
+                                                                apiServer,
+                                                                videoList[
+                                                                        sourceIndex]
+                                                                    .key,
+                                                                video.id),
+                                                          ),
                                                         ),
                                                         Expanded(
                                                           child: Container(
