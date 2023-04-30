@@ -413,24 +413,15 @@ class _SearchPage extends State<SearchPage> {
                                                                           alignment: Alignment
                                                                               .bottomLeft,
                                                                           child:
-                                                                              Row(
-                                                                            children: [
                                                                               TextButton(
-                                                                                onPressed: () async {
-                                                                                  await openLink(Api.getDetailUrl(apiServer, videoList[sourceIndex].key, video.id));
-                                                                                },
-                                                                                style: TextButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),
-                                                                                child: const Text('网页播放'),
-                                                                              ),
-                                                                              const SizedBox(
-                                                                                width: 10,
-                                                                              ),
-                                                                              TextButton(
-                                                                                onPressed: () => generateDataUrl(videoList[sourceIndex].key, video.id),
-                                                                                style: TextButton.styleFrom(side: BorderSide(width: 1.0, color: Theme.of(context).primaryColor)),
-                                                                                child: const Text('数据链接'),
-                                                                              ),
-                                                                            ],
+                                                                            onPressed:
+                                                                                () async {
+                                                                              await openLink(Api.getDetailUrl(apiServer, videoList[sourceIndex].key, video.id));
+                                                                            },
+                                                                            style:
+                                                                                TextButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),
+                                                                            child:
+                                                                                const Text('网页播放'),
                                                                           )),
                                                                 )
                                                               ],

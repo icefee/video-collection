@@ -51,12 +51,20 @@ class Api {
     return [
       'https://cik.netlify.app',
       'https://cil.onrender.com',
-      'https://apps.gatsbyjs.io'
+      'https://apps.gatsbyjs.io',
+      'https://www.stormkit.dev'
     ][serverId];
   }
 
-  static String getDetailUrl(int serverId, String key, int id) =>
-      '${getServer(serverId)}/video/$key/$id';
+  static String getDetailUrl(int serverId, String key, int id) {
+    String server = getServer(serverId);
+    if (serverId < 3) {
+      return '$server/video/$key/$id';
+    }
+    String clue =
+        base64.encode(utf8.encode('$key|$id')).replaceAll(RegExp(r'={2}$'), '');
+    return '$server/video?clue=$clue';
+  }
 
   static Future<SearchVideoList?> getSearchVideo(
       int serverId, SearchQuery query) async {
@@ -68,8 +76,7 @@ class Api {
     return result != null ? SearchVideoList.fromMap(result) : null;
   }
 
-  static String getVideoPoster(
-      int serverId, String key, int id) {
+  static String getVideoPoster(int serverId, String key, int id) {
     return '${getServer(serverId)}/api/video/$key/$id?type=poster';
   }
 
