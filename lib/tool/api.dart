@@ -44,16 +44,18 @@ class Api {
     return videoData != null ? VideoData.fromMap(videoData) : null;
   }
 
+  static List<String> servers = [
+    'https://cik.netlify.app',
+    'https://cil.onrender.com',
+    'https://apps.gatsbyjs.io',
+    staticBaseUrl
+  ];
+
   static String getServer(int serverId) {
     if (dev) {
       return devServer;
     }
-    return [
-      'https://cik.netlify.app',
-      'https://cil.onrender.com',
-      'https://apps.gatsbyjs.io',
-      'https://www.stormkit.dev'
-    ][serverId];
+    return servers[serverId];
   }
 
   static String getDetailUrl(int serverId, String key, int id) {

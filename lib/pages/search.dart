@@ -154,7 +154,9 @@ class _SearchPage extends State<SearchPage> {
   }
 
   Future<void> showSetting() async {
-    List<String> servers = ['netlify.app', 'onrender.com', 'gatsbyjs.io'];
+    List<String> servers = Api.servers.map(
+        (uri) => Uri.parse(uri).host.replaceFirst(RegExp(r'\w+\.'), '')
+    ).toList();
     int? serverId = await showDialog<int>(
         context: context,
         builder: (BuildContext context) {
