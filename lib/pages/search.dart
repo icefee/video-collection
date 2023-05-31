@@ -33,6 +33,12 @@ class _SearchPage extends State<SearchPage> {
     restoreSetting();
   }
 
+  String createId(String key, int id) {
+    return base64
+        .encode(utf8.encode('$key|$id'))
+        .replaceAll(RegExp(r'={1,2}$'), '');
+  }
+
   Future<void> restoreSetting() async {
     String? value = await storage.read(key: 'server_id');
     if (value != null) {
@@ -87,7 +93,8 @@ class _SearchPage extends State<SearchPage> {
     });
     removeSnackBar();
     try {
-      VideoInfo? videoInfo = await Api.getVideoDetail(apiServer, key, id);
+      VideoInfo? videoInfo =
+          await Api.getVideoDetail(apiServer, createId(key, id));
       if (videoInfo != null) {
         VideoSource videoSource = videoInfo.dataList.first;
         String title = videoInfo.name;
@@ -131,9 +138,9 @@ class _SearchPage extends State<SearchPage> {
       launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
 
   Future<void> showSetting() async {
-    List<String> servers = Api.servers.map(
-        (uri) => Uri.parse(uri).host.replaceFirst(RegExp(r'\w+\.'), '')
-    ).toList();
+    List<String> servers = Api.servers
+        .map((uri) => Uri.parse(uri).host.replaceFirst(RegExp(r'\w+\.'), ''))
+        .toList();
     int? serverId = await showDialog<int>(
         context: context,
         builder: (BuildContext context) {
@@ -328,10 +335,11 @@ class _SearchPage extends State<SearchPage> {
                                                           child: Poster(
                                                             src: Api.getVideoPoster(
                                                                 apiServer,
-                                                                videoList[
-                                                                        sourceIndex]
-                                                                    .key,
-                                                                video.id),
+                                                                createId(
+                                                                    videoList[
+                                                                            sourceIndex]
+                                                                        .key,
+                                                                    video.id)),
                                                           ),
                                                         ),
                                                         Expanded(
@@ -395,7 +403,7 @@ class _SearchPage extends State<SearchPage> {
                                                                               TextButton(
                                                                             onPressed:
                                                                                 () async {
-                                                                              await openLink(Api.getDetailUrl(apiServer, videoList[sourceIndex].key, video.id));
+                                                                              await openLink(Api.getDetailUrl(apiServer, createId(videoList[sourceIndex].key, video.id)));
                                                                             },
                                                                             style:
                                                                                 TextButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),

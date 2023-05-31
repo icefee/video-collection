@@ -6,8 +6,7 @@ import './type.dart';
 export './type.dart';
 
 class Api {
-  static bool dev = false;
-  static String devServer = 'http://192.168.10.104:420';
+
   static String apiServer = 'https://spacedeta-1-f1000878.deta.app';
   static String source = kIsWeb ? '/videos.json' : '$apiServer/api/video';
 
@@ -45,22 +44,16 @@ class Api {
   }
 
   static List<String> servers = [
-    'https://cik.netlify.app',
-    'https://cil.onrender.com',
+    apiServer,
     'https://apps.gatsbyjs.io',
-    devServer
+    'https://code-app.netlify.app'
   ];
 
-  static String getServer(int serverId) {
-    if (dev) {
-      return devServer;
-    }
-    return servers[serverId];
-  }
+  static String getServer(int serverId) => servers[serverId];
 
-  static String getDetailUrl(int serverId, String key, int id) {
+  static String getDetailUrl(int serverId, String id) {
     String server = getServer(serverId);
-    return '$server/video/$key/$id';
+    return '$server/video/play/$id';
   }
 
   static Future<SearchVideoList?> getSearchVideo(
@@ -73,13 +66,13 @@ class Api {
     return result != null ? SearchVideoList.fromMap(result) : null;
   }
 
-  static String getVideoPoster(int serverId, String key, int id) {
-    return '${getServer(serverId)}/api/video/$key/$id?type=poster';
+  static String getVideoPoster(int serverId, String id) {
+    return '${getServer(serverId)}/api/video/$id?type=poster';
   }
 
   static Future<VideoInfo?> getVideoDetail(
-      int serverId, String key, int id) async {
-    String api = '${getServer(serverId)}/api/video/$key/$id';
+      int serverId, String id) async {
+    String api = '${getServer(serverId)}/api/video/$id';
     Map? result = await getApiJson(api);
     return result != null ? VideoInfo.fromMap(result) : null;
   }
