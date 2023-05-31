@@ -15,7 +15,7 @@ class _Poster extends State<Poster> {
 
   Widget get loadFail {
     return Image.network(
-      '${Api.staticBaseUrl}/assets/image_fail.jpg',
+      '${Api.apiServer}/assets/image_fail.jpg',
       fit: BoxFit.cover,
     );
   }

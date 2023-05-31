@@ -8,8 +8,8 @@ export './type.dart';
 class Api {
   static bool dev = false;
   static String devServer = 'http://192.168.10.104:420';
-  static String staticBaseUrl = 'https://www.stormkit.dev';
-  static String source = '${kIsWeb ? '' : staticBaseUrl}/videos.json';
+  static String apiServer = 'https://spacedeta-1-f1000878.deta.app';
+  static String source = kIsWeb ? '/videos.json' : '$apiServer/api/video';
 
   static Future<T?> getJson<T>(String url) async {
     try {
@@ -48,7 +48,7 @@ class Api {
     'https://cik.netlify.app',
     'https://cil.onrender.com',
     'https://apps.gatsbyjs.io',
-    staticBaseUrl
+    devServer
   ];
 
   static String getServer(int serverId) {
@@ -60,12 +60,7 @@ class Api {
 
   static String getDetailUrl(int serverId, String key, int id) {
     String server = getServer(serverId);
-    if (serverId < 3) {
-      return '$server/video/$key/$id';
-    }
-    String clue =
-        base64.encode(utf8.encode('$key|$id')).replaceAll(RegExp(r'={2}$'), '');
-    return '$server/video?clue=$clue';
+    return '$server/video/$key/$id';
   }
 
   static Future<SearchVideoList?> getSearchVideo(

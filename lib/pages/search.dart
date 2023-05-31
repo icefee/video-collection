@@ -130,29 +130,6 @@ class _SearchPage extends State<SearchPage> {
   Future<void> openLink(String url) =>
       launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
 
-  Future<void> generateDataUrl(String key, int id) async {
-    removeSnackBar();
-    setState(() {
-      loading = true;
-    });
-    try {
-      VideoInfo? videoInfo = await Api.getVideoDetail(apiServer, key, id);
-      if (null != videoInfo && mounted) {
-        Map infoMap = videoInfo.toMap();
-        String json = jsonEncode({'api': key, 'id': id, 'video': infoMap});
-        String dataUrl = Uri.encodeComponent(base64.encode(utf8.encode(json)));
-        openLink('${Api.staticBaseUrl}/video?d=$dataUrl');
-      } else {
-        throw 'failed';
-      }
-    } catch (err) {
-      showSnackBar('获取内容详情失败', () => generateDataUrl(key, id));
-    }
-    setState(() {
-      loading = false;
-    });
-  }
-
   Future<void> showSetting() async {
     List<String> servers = Api.servers.map(
         (uri) => Uri.parse(uri).host.replaceFirst(RegExp(r'\w+\.'), '')
