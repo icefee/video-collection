@@ -300,10 +300,10 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                                       width: 36,
                                       child: Center(
                                         child: SizedBox(
-                                          width: 20.0,
-                                          height: 20.0,
+                                          width: 24.0,
+                                          height: 24.0,
                                           child: CircularProgressIndicator(
-                                            strokeWidth: 3,
+                                            strokeWidth: 4,
                                           ),
                                         ),
                                       ),
