@@ -70,12 +70,14 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
     try {
       await _controller.initialize();
     } catch (err) {
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         failed = true;
       });
-      // showSnackBar(
-      //         const SnackBar(content: Text('视频源连接失败, 请切换网络重试.'), backgroundColor: Colors.red)
-      //       )
+
       messageBanner = ScaffoldMessenger.of(context).showMaterialBanner(
         MaterialBanner(
             content: const Text('视频源连接失败, 请尝试切换网络重试.'),
@@ -276,9 +278,10 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
                     Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                      margin: const EdgeInsets.symmetric(horizontal: 5.0),
                       child: VideoProgressIndicator(widget.controller,
                           allowScrubbing: true,
+                          padding: const EdgeInsets.all(8.0),
                           colors: VideoProgressColors(
                               playedColor: Theme.of(context).primaryColor,
                               backgroundColor: Colors.white30,
@@ -309,8 +312,8 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                                       onTap: _togglePlay,
                                       child: Icon(
                                         widget.controller.value.isPlaying
-                                            ? Icons.pause
-                                            : Icons.play_arrow,
+                                            ? Icons.pause_rounded
+                                            : Icons.play_arrow_rounded,
                                         color: Colors.white,
                                         size: 36.0,
                                       ),
@@ -326,7 +329,7 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                           InkWell(
                             onTap: () => widget.toggleFullScreen(),
                             child: const Icon(
-                              Icons.fullscreen,
+                              Icons.fullscreen_rounded,
                               color: Colors.white,
                               size: 36.0,
                             ),
