@@ -33,7 +33,6 @@ class VideoCollection extends StatelessWidget {
         ),
         Expanded(
           child: ListView.separated(
-            padding: EdgeInsets.zero,
             itemCount: section.series.length,
             itemBuilder: (BuildContext context, int index) {
               Video video = section.series[index];

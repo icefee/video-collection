@@ -75,6 +75,7 @@ class _Home extends State<Home> {
                   return ListTile(
                       leading: const Icon(Icons.video_collection),
                       title: Text(section.section),
+                      selected: activeSection?.section == section.section,
                       onTap: () {
                         activeSection = section;
                         setState(() {});
