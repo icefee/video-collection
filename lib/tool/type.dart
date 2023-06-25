@@ -181,7 +181,7 @@ class VideoInfo {
       'pic': pic,
       'type': type,
       'year': year,
-      'dataList': dataList.map((VideoSource source) => source.fromMap()).toList(),
+      'dataList': dataList.map((VideoSource source) => source.toMap()).toList(),
       'des': des,
       'last': last,
       'state': state,
@@ -204,7 +204,7 @@ class VideoSource {
         (map['urls'] as List).map((e) => VideoItem.fromMap(e as Map)).toList());
   }
 
-  Map<String, dynamic> fromMap() {
+  Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'name': name,
       'urls': urls.map((VideoItem videoItem) => videoItem.toMap()).toList()
