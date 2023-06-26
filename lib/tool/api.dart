@@ -10,11 +10,11 @@ class Api {
   static String apiServer = 'https://spacedeta-1-f1000878.deta.app';
   static String source = kIsWeb ? '/videos.json' : '$apiServer/api/video';
 
-  static Future<T?> getJson<T>(String url) async {
+  static Future<Map?> getJson(String url) async {
     try {
       Response response = await get(Uri.parse(url));
       String json = utf8.decode(response.bodyBytes);
-      T data = jsonDecode(json);
+      Map data = jsonDecode(json);
       return data;
     } catch (err) {
       return null;
@@ -23,7 +23,7 @@ class Api {
 
   static Future<T?> getApiJson<T>(String url) async {
     try {
-      Map? data = await getJson<Map>(url);
+      Map? data = await getJson(url);
       if (data == null) {
         throw const SocketException('network error');
       }
@@ -39,7 +39,7 @@ class Api {
   }
 
   static Future<VideoData?> getSourceData(String url) async {
-    Map? videoData = await getJson<Map>(url);
+    Map? videoData = await getJson(url);
     return videoData != null ? VideoData.fromMap(videoData) : null;
   }
 
