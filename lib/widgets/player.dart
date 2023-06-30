@@ -3,6 +3,9 @@ import 'package:video_player/video_player.dart';
 import 'package:flutter/foundation.dart';
 import 'package:wakelock/wakelock.dart';
 import 'dart:math' show min, max;
+import '../tool/parser.dart';
+import '../tool/type.dart';
+import '../tool/theme.dart';
 
 void setWakelock(bool enable) {
   if (!kIsWeb) {
@@ -32,9 +35,10 @@ class NetworkVideoPlayer extends StatefulWidget {
 
 class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
   late VideoPlayerController _controller;
+  PlayState playState = PlayState.origin();
   bool pending = false;
+  bool seeking = false;
   bool failed = false;
-  ScaffoldFeatureController? messageBanner;
 
   @override
   void initState() {
@@ -43,24 +47,21 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
     _initPlayer();
   }
 
-  void _initPlayer() async {
-    _controller = VideoPlayerController.network(
-      widget.url,
-      videoPlayerOptions: VideoPlayerOptions(
-        mixWithOthers: true,
-      ),
-    );
-
-    _controller.addListener(() {
-      if (_controller.value.isInitialized &&
-          _controller.value.isPlaying &&
-          _controller.value.position.inSeconds ==
-              _controller.value.duration.inSeconds) {
+  void videoPlayerControllerListener() {
+    if (_controller.value.isInitialized) {
+      if (_controller.value.isPlaying && _controller.value.position.inSeconds == _controller.value.duration.inSeconds) {
         widget.onEnd?.call();
       }
-
+      if (!seeking) {
+        playState = PlayState.fromVideoPlayerValue(_controller.value);
+      }
       setState(() {});
-    });
+    }
+  }
+
+  void _initPlayer() async {
+    _controller = VideoPlayerController.network(widget.url);
+    _controller.addListener(videoPlayerControllerListener);
 
     setState(() {
       failed = false;
@@ -69,49 +70,13 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
     // await _controller.setLooping(true);
     try {
       await _controller.initialize();
+      await _controller.play();
+      setWakelock(true);
     } catch (err) {
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        failed = true;
-      });
-
-      messageBanner = ScaffoldMessenger.of(context).showMaterialBanner(
-        MaterialBanner(
-            content: const Text('视频源连接失败, 请尝试切换网络重试.'),
-            contentTextStyle: const TextStyle(color: Colors.white),
-            backgroundColor: Colors.red,
-            actions: <Widget>[
-              TextButton(
-                  onPressed: () {
-                    _disposeErrorMsg();
-                    _disposePlayer();
-                    _initPlayer();
-                  },
-                  child:
-                      const Text('重试', style: TextStyle(color: Colors.white)))
-            ]),
-      );
-
-      setState(() {
-        pending = false;
-      });
-      return;
+      failed = true;
     }
-
-    setState(() {
-      pending = false;
-    });
-    await _controller.play();
-    setWakelock(true);
-  }
-
-  Future<void> _disposeErrorMsg() async {
-    messageBanner?.close();
-    await messageBanner?.closed;
-    messageBanner = null;
+    pending = false;
+    setState(() {});
   }
 
   @override
@@ -120,14 +85,12 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.url != widget.url) {
-      _disposePlayer();
-      _disposeErrorMsg();
-      _initPlayer();
+      _disposePlayer().then((value) => _initPlayer());
     }
   }
 
-  void _disposePlayer() {
-    _controller.dispose();
+  Future<void> _disposePlayer() async {
+    await _controller.dispose();
     setWakelock(false);
   }
 
@@ -139,13 +102,9 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-        onWillPop: () async {
-          if (failed) {
-            await _disposeErrorMsg();
-          }
-          return true;
-        },
+    return Container(
+        color: Colors.black,
+        constraints: const BoxConstraints.expand(),
         child: Stack(
           alignment: Alignment.center,
           children: <Widget>[
@@ -154,13 +113,40 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
               child: VideoPlayer(_controller),
             ),
             Offstage(
+              offstage: !(pending || _controller.value.isBuffering),
+              child: Container(
+                constraints: const BoxConstraints.expand(),
+                child: Center(
+                  child: SizedBox(
+                    width: 64,
+                    height: 64,
+                    child: CircularProgressIndicator(
+                      color: Colors.white.withOpacity(.8),
+                      strokeWidth: 3,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Offstage(
               offstage: failed,
               child: ControlsOverlay(
                 controller: _controller,
-                pending: pending,
+                playState: playState,
+                onSeeking: (double value) {
+                  playState.played = value;
+                  seeking = true;
+                  setState(() {});
+                },
+                onSeekEnd: (double value) {
+                  _controller
+                      .seekTo(Duration(milliseconds: (value * _controller.value.duration.inMilliseconds).round()))
+                      .then((value) {
+                    seeking = false;
+                  });
+                },
                 toggleFullScreen: () => widget.toggleFullScreen?.call(),
-                onControlsVisibleStateChange:
-                    widget.onControlsVisibleStateChange,
+                onControlsVisibleStateChange: widget.onControlsVisibleStateChange,
               ),
             )
           ],
@@ -170,14 +156,18 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
 
 class ControlsOverlay extends StatefulWidget {
   final VideoPlayerController controller;
-  final bool pending;
+  final PlayState playState;
+  final ValueChanged<double> onSeeking;
+  final ValueChanged<double> onSeekEnd;
   final VoidCallback toggleFullScreen;
   final ValueChanged<bool>? onControlsVisibleStateChange;
 
   const ControlsOverlay(
       {Key? key,
       required this.controller,
-      required this.pending,
+      required this.playState,
+      required this.onSeeking,
+      required this.onSeekEnd,
       required this.toggleFullScreen,
       this.onControlsVisibleStateChange})
       : super(key: key);
@@ -190,14 +180,14 @@ class _ControlsOverlay extends State<ControlsOverlay> {
   bool controlsVisible = true;
   double originOffset = 0;
 
-  void _togglePlay() {
+  Future<void> _togglePlay() async {
     if (widget.controller.value.isInitialized) {
       if (widget.controller.value.isPlaying) {
-        widget.controller.pause();
+        await widget.controller.pause();
         setWakelock(false);
         _toggleControlsVisible(true);
       } else {
-        widget.controller.play();
+        await widget.controller.play();
         setWakelock(true);
       }
     }
@@ -210,20 +200,10 @@ class _ControlsOverlay extends State<ControlsOverlay> {
     widget.onControlsVisibleStateChange?.call(visible);
   }
 
-  String timeFormatter(Duration d) {
-    int s = d.inSeconds;
-    int m = d.inMinutes;
-    int h = d.inHours;
-    if (s < 3600) {
-      return '${m.toString().padLeft(2, '0')}:${(s - m * 60).toString().padLeft(2, '0')}';
-    }
-    return '${h.toString().padLeft(2, '0')}:${(m - h * 60).toString().padLeft(2, '0')}:${(s - m * 60).toString().padLeft(2, '0')}';
-  }
-
   String get playedTime {
-    Duration current = widget.controller.value.position;
-    Duration total = widget.controller.value.duration;
-    return '${timeFormatter(current)} / ${timeFormatter(total)}';
+    return [widget.playState.duration * widget.playState.played, widget.playState.duration]
+        .map(DateTimeParser.parseDuration)
+        .join(' / ');
   }
 
   @override
@@ -246,11 +226,7 @@ class _ControlsOverlay extends State<ControlsOverlay> {
               double screenWidth = MediaQuery.of(context).size.width;
               seconds = max(
                   0,
-                  min(
-                      seconds +
-                          (details.globalPosition.dx - originOffset) *
-                              totalSeconds ~/
-                              screenWidth,
+                  min(seconds + (details.globalPosition.dx - originOffset) * totalSeconds ~/ screenWidth,
                       totalSeconds));
               widget.controller.seekTo(Duration(seconds: seconds));
               originOffset = details.globalPosition.dx;
@@ -262,85 +238,71 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                 gradient: LinearGradient(
               begin: Alignment.bottomCenter,
               end: Alignment.center,
-              colors: [
-                controlsVisible ? Colors.black54 : Colors.transparent,
-                Colors.transparent
-              ],
-              stops: const [.2, .5],
+              colors: [controlsVisible ? Colors.black54 : Colors.transparent, Colors.transparent],
+              stops: const [.2, .75],
             )),
-            duration: const Duration(milliseconds: 200),
+            duration: AppTheme.transitionDuration,
           ),
         ),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250),
-          child: (controlsVisible || widget.pending)
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                      child: VideoProgressIndicator(widget.controller,
-                          allowScrubbing: true,
-                          padding: const EdgeInsets.all(8.0),
-                          colors: VideoProgressColors(
-                              playedColor: Theme.of(context).primaryColor,
-                              backgroundColor: Colors.white30,
-                              bufferedColor: Colors.white38)),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(5.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        AnimatedOpacity(
+            opacity: controlsVisible ? 1 : 0,
+            duration: AppTheme.transitionDuration,
+            curve: Curves.easeInOut,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Slider.adaptive(
+                    value: widget.playState.played,
+                    secondaryTrackValue: widget.playState.buffered,
+                    onChanged: widget.onSeeking,
+                    onChangeEnd: widget.onSeekEnd),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(5, 0, 5, 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Row(
                         children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              (widget.pending ||
-                                      widget.controller.value.isBuffering)
-                                  ? const SizedBox(
-                                      width: 36,
-                                      child: Center(
-                                        child: SizedBox(
-                                          width: 24.0,
-                                          height: 24.0,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 4,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  : InkWell(
-                                      onTap: _togglePlay,
-                                      child: Icon(
-                                        widget.controller.value.isPlaying
-                                            ? Icons.pause_rounded
-                                            : Icons.play_arrow_rounded,
-                                        color: Colors.white,
-                                        size: 36.0,
-                                      ),
-                                    ),
-                              Container(
-                                margin: const EdgeInsets.only(left: 5.0),
-                                child: Text(playedTime,
-                                    style: const TextStyle(
-                                        color: Colors.white, fontSize: 16.0)),
-                              )
-                            ],
-                          ),
                           InkWell(
-                            onTap: () => widget.toggleFullScreen(),
-                            child: const Icon(
-                              Icons.fullscreen_rounded,
+                            onTap: _togglePlay,
+                            child: Icon(
+                              widget.controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
                               color: Colors.white,
-                              size: 36.0,
+                              size: 32,
                             ),
                           ),
+                          Container(
+                            margin: const EdgeInsets.only(left: 5.0),
+                            child: Text(playedTime, style: const TextStyle(color: Colors.white, fontSize: 16.0)),
+                          )
                         ],
                       ),
-                    )
-                  ],
+                      InkWell(
+                        onTap: () => widget.toggleFullScreen(),
+                        child: const Icon(
+                          Icons.fullscreen_rounded,
+                          color: Colors.white,
+                          size: 36.0,
+                        ),
+                      ),
+                    ],
+                  ),
                 )
-              : const SizedBox.shrink(),
-        ),
+              ],
+            )),
+        AnimatedOpacity(
+          opacity: controlsVisible ? 1 : 0,
+          duration: AppTheme.transitionDuration,
+          child: Center(
+            child: IconButton(
+                onPressed: _togglePlay,
+                iconSize: 64,
+                icon: Icon(
+                  widget.controller.value.isPlaying ? Icons.pause_circle : Icons.play_circle,
+                  color: Colors.white.withOpacity(.8),
+                )),
+          ),
+        )
       ],
     );
   }

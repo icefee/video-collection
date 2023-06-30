@@ -5,6 +5,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import './detail.dart';
 import '../tool/api.dart';
+import '../widgets/loading.dart';
 import '../widgets/poster.dart';
 
 class SearchPage extends StatefulWidget {
@@ -34,9 +35,7 @@ class _SearchPage extends State<SearchPage> {
   }
 
   String createId(String key, int id) {
-    return base64
-        .encode(utf8.encode('$key|$id'))
-        .replaceAll(RegExp(r'={1,2}$'), '');
+    return base64.encode(utf8.encode('$key|$id')).replaceAll(RegExp(r'={1,2}$'), '');
   }
 
   Future<void> restoreSetting() async {
@@ -60,8 +59,7 @@ class _SearchPage extends State<SearchPage> {
         wd = wd.substring(1);
         prefer = true;
       }
-      SearchVideoList? result =
-          await Api.getSearchVideo(apiServer, SearchQuery(wd, prefer));
+      SearchVideoList? result = await Api.getSearchVideo(apiServer, SearchQuery(wd, prefer));
       if (mounted) {
         setState(() {
           loading = false;
@@ -71,9 +69,7 @@ class _SearchPage extends State<SearchPage> {
             videoList = result.data;
           });
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            listController.animateTo(0,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.ease);
+            listController.animateTo(0, duration: const Duration(milliseconds: 200), curve: Curves.ease);
           });
         } else {
           throw 'Get search result failed.';
@@ -93,18 +89,16 @@ class _SearchPage extends State<SearchPage> {
     });
     removeSnackBar();
     try {
-      VideoInfo? videoInfo =
-          await Api.getVideoDetail(apiServer, createId(key, id));
+      VideoInfo? videoInfo = await Api.getVideoDetail(apiServer, createId(key, id));
       if (videoInfo != null) {
         VideoSource videoSource = videoInfo.dataList.first;
         String title = videoInfo.name;
         Video video = videoSource.urls.length > 1
-            ? Series(title, videoSource.urls.length, '{0}',
-                videoSource.urls.map((VideoItem item) => [item.url]).toList())
+            ? Series(
+                title, videoSource.urls.length, '{0}', videoSource.urls.map((VideoItem item) => [item.url]).toList())
             : Film(title, videoSource.urls.first.url);
         if (mounted) {
-          Navigator.of(context).push(MaterialPageRoute(
-              builder: (BuildContext context) => VideoDetail(video: video)));
+          Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => VideoDetail(video: video)));
         }
       } else {
         throw 'failed';
@@ -134,20 +128,16 @@ class _SearchPage extends State<SearchPage> {
     ScaffoldMessenger.of(context).clearSnackBars();
   }
 
-  Future<void> openLink(String url) =>
-      launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  Future<void> openLink(String url) => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
 
   Future<void> showSetting() async {
-    List<String> servers = Api.servers
-        .map((uri) => Uri.parse(uri).host.replaceFirst(RegExp(r'[\w-]+\.'), ''))
-        .toList();
+    List<String> servers = Api.servers.map((uri) => Uri.parse(uri).host.replaceFirst(RegExp(r'[\w-]+\.'), '')).toList();
     int? serverId = await showDialog<int>(
         context: context,
         builder: (BuildContext context) {
           return SimpleDialog(
             title: const Text('选择服务器'),
-            titleTextStyle:
-                const TextStyle(fontSize: 17.0, color: Colors.black),
+            titleTextStyle: const TextStyle(fontSize: 17.0, color: Colors.black),
             contentPadding: const EdgeInsets.all(10.0),
             children: [
               const SizedBox(
@@ -165,13 +155,10 @@ class _SearchPage extends State<SearchPage> {
                           Radio<int>(
                               value: index,
                               groupValue: apiServer,
-                              onChanged: (int? value) =>
-                                  Navigator.pop(context, index)),
+                              onChanged: (int? value) => Navigator.pop(context, index)),
                           Text(servers[index],
-                              style: TextStyle(
-                                  color: apiServer == index
-                                      ? Theme.of(context).primaryColor
-                                      : Colors.black))
+                              style:
+                                  TextStyle(color: apiServer == index ? Theme.of(context).primaryColor : Colors.black))
                         ],
                       )))
                   .toList(),
@@ -192,9 +179,7 @@ class _SearchPage extends State<SearchPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('搜索'),
-        actions: [
-          IconButton(onPressed: showSetting, icon: const Icon(Icons.settings))
-        ],
+        actions: [IconButton(onPressed: showSetting, icon: const Icon(Icons.settings))],
       ),
       backgroundColor: Colors.grey[200],
       body: Stack(
@@ -226,9 +211,7 @@ class _SearchPage extends State<SearchPage> {
                               autofocus: true,
                               controller: searchFieldController,
                               textInputAction: TextInputAction.search,
-                              decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: '输入关键词搜索'),
+                              decoration: const InputDecoration(border: InputBorder.none, hintText: '输入关键词搜索'),
                               onChanged: (String text) {
                                 setState(() {
                                   searchKeyword = text;
@@ -250,8 +233,7 @@ class _SearchPage extends State<SearchPage> {
                             scale: searchKeyword.isNotEmpty ? 1 : 0,
                             duration: const Duration(milliseconds: 200),
                             child: InkWell(
-                              child:
-                                  const Icon(Icons.close, color: Colors.grey),
+                              child: const Icon(Icons.close, color: Colors.grey),
                               onTap: () {
                                 searchFieldController.text = '';
                                 setState(() {
@@ -279,17 +261,14 @@ class _SearchPage extends State<SearchPage> {
                               Container(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Text(videoList[sourceIndex].name),
                                     RatingBarIndicator(
                                       rating: videoList[sourceIndex].rating,
-                                      itemBuilder: (context, index) => Icon(
-                                          Icons.star,
-                                          color:
-                                              Theme.of(context).primaryColor),
+                                      itemBuilder: (context, index) =>
+                                          Icon(Icons.star, color: Theme.of(context).primaryColor),
                                       itemCount: 5,
                                       itemSize: 16.0,
                                       direction: Axis.horizontal,
@@ -301,115 +280,77 @@ class _SearchPage extends State<SearchPage> {
                                 children: videoList[sourceIndex]
                                     .data
                                     .map((SearchVideoItem video) => Container(
-                                          margin:
-                                              const EdgeInsets.only(bottom: 8),
+                                          margin: const EdgeInsets.only(bottom: 8),
                                           child: TextButton(
-                                            style: TextButton.styleFrom(
-                                                padding: EdgeInsets.zero),
-                                            onPressed: () => getVideoInfo(
-                                                videoList[sourceIndex].key,
-                                                video.id),
+                                            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                                            onPressed: () => getVideoInfo(videoList[sourceIndex].key, video.id),
                                             child: Container(
-                                              padding: const EdgeInsets.only(
-                                                  right: 8.0),
+                                              padding: const EdgeInsets.only(right: 8.0),
                                               decoration: BoxDecoration(
-                                                  color: Colors.white
-                                                      .withOpacity(.4),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          5.0)),
+                                                  color: Colors.white.withOpacity(.4),
+                                                  borderRadius: BorderRadius.circular(5.0)),
                                               clipBehavior: Clip.hardEdge,
                                               child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
                                                   Expanded(
                                                     child: Row(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
                                                       children: [
                                                         SizedBox(
                                                           width: 105,
                                                           child: Poster(
-                                                            src: Api.getVideoPoster(
-                                                                apiServer,
-                                                                createId(
-                                                                    videoList[
-                                                                            sourceIndex]
-                                                                        .key,
-                                                                    video.id)),
+                                                            src: Api.getVideoPoster(apiServer,
+                                                                createId(videoList[sourceIndex].key, video.id)),
                                                           ),
                                                         ),
                                                         Expanded(
                                                           child: Container(
                                                             height: 105 * 1.5,
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(8.0),
+                                                            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
                                                             child: Column(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .start,
-                                                              crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .start,
+                                                              mainAxisAlignment: MainAxisAlignment.start,
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
                                                               children: [
                                                                 Text(
                                                                   video.name,
-                                                                  style: const TextStyle(
-                                                                      fontSize:
-                                                                          20),
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  softWrap:
-                                                                      true,
+                                                                  style: const TextStyle(fontSize: 20),
+                                                                  overflow: TextOverflow.ellipsis,
+                                                                  softWrap: true,
                                                                   maxLines: 2,
                                                                 ),
                                                                 Row(
                                                                   children: [
                                                                     Chip(
-                                                                      label: Text(
-                                                                          video
-                                                                              .type,
-                                                                          style:
-                                                                              const TextStyle(fontSize: 14)),
+                                                                      label: Text(video.type,
+                                                                          style: const TextStyle(fontSize: 14)),
                                                                       backgroundColor:
-                                                                          Theme.of(context)
-                                                                              .secondaryHeaderColor,
+                                                                          Theme.of(context).secondaryHeaderColor,
                                                                     ),
                                                                     Container(
-                                                                      margin: const EdgeInsets
-                                                                              .only(
-                                                                          left:
-                                                                              8.0),
-                                                                      child: Text(
-                                                                          video
-                                                                              .note,
+                                                                      margin: const EdgeInsets.only(left: 8.0),
+                                                                      child: Text(video.note,
                                                                           style: TextStyle(
-                                                                              fontSize: 14,
-                                                                              color: Colors.grey[500])),
+                                                                              fontSize: 14, color: Colors.grey[500])),
                                                                     )
                                                                   ],
                                                                 ),
                                                                 Expanded(
-                                                                  child:
-                                                                      Container(
-                                                                          alignment: Alignment
-                                                                              .bottomLeft,
-                                                                          child:
-                                                                              TextButton(
-                                                                            onPressed:
-                                                                                () async {
-                                                                              await openLink(Api.getDetailUrl(apiServer, createId(videoList[sourceIndex].key, video.id)));
-                                                                            },
-                                                                            style:
-                                                                                TextButton.styleFrom(backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),
-                                                                            child:
-                                                                                const Text('网页播放'),
-                                                                          )),
+                                                                  child: Container(
+                                                                      alignment: Alignment.bottomLeft,
+                                                                      child: TextButton(
+                                                                        onPressed: () async {
+                                                                          await openLink(Api.getDetailUrl(
+                                                                              apiServer,
+                                                                              createId(videoList[sourceIndex].key,
+                                                                                  video.id)));
+                                                                        },
+                                                                        style: TextButton.styleFrom(
+                                                                            backgroundColor:
+                                                                                Theme.of(context).primaryColor,
+                                                                            foregroundColor: Colors.white),
+                                                                        child: const Text('网页播放'),
+                                                                      )),
                                                                 )
                                                               ],
                                                             ),
@@ -418,9 +359,7 @@ class _SearchPage extends State<SearchPage> {
                                                       ],
                                                     ),
                                                   ),
-                                                  const Icon(
-                                                      Icons.arrow_forward_ios,
-                                                      size: 16.0)
+                                                  const Icon(Icons.arrow_forward_ios, size: 16.0)
                                                 ],
                                               ),
                                             ),
@@ -442,21 +381,7 @@ class _SearchPage extends State<SearchPage> {
               bottom: 0,
               child: Offstage(
                 offstage: !loading,
-                child: Container(
-                  constraints: const BoxConstraints.expand(),
-                  alignment: Alignment.center,
-                  child: Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(200),
-                        borderRadius: BorderRadius.circular(4.0)),
-                    padding: const EdgeInsets.all(16.0),
-                    child: const CircularProgressIndicator(
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+                child: const Loading(),
               ))
         ],
       ),

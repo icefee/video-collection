@@ -4,15 +4,13 @@ import '../tool/api.dart';
 class Poster extends StatefulWidget {
   final String src;
 
-  const Poster(
-      {super.key, required this.src});
+  const Poster({super.key, required this.src});
 
   @override
   State<StatefulWidget> createState() => _Poster();
 }
 
 class _Poster extends State<Poster> {
-
   Widget get loadFail {
     return Image.network(
       '${Api.apiServer}/assets/image_fail.jpg',
@@ -30,8 +28,7 @@ class _Poster extends State<Poster> {
           widget.src,
           fit: BoxFit.cover,
           isAntiAlias: true,
-          errorBuilder:
-              (BuildContext context, Object error, StackTrace? trace) {
+          errorBuilder: (BuildContext context, Object error, StackTrace? trace) {
             return loadFail;
           },
         ),

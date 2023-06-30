@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:math' show min;
+import 'package:video_player/video_player.dart';
 
 class VideoData {
   late List<VideoSection> videos;
@@ -6,8 +8,7 @@ class VideoData {
   VideoData(this.videos);
   static VideoData fromMap(Map map) {
     List<Map> videos = (map['videos'] as List).map((e) => e as Map).toList();
-    List<VideoSection> sections =
-        videos.map((Map section) => VideoSection.fromMap(section)).toList();
+    List<VideoSection> sections = videos.map((Map section) => VideoSection.fromMap(section)).toList();
     return VideoData(sections);
   }
 }
@@ -20,8 +21,7 @@ class VideoSection {
 
   static VideoSection fromMap(Map map) {
     String section = map['section'];
-    List<Map<String, dynamic>> series =
-        (map['series'] as List).map((e) => e as Map<String, dynamic>).toList();
+    List<Map<String, dynamic>> series = (map['series'] as List).map((e) => e as Map<String, dynamic>).toList();
     return VideoSection(
         section,
         series.map((Map<String, dynamic> s) {
@@ -47,13 +47,8 @@ class Series implements Video {
   Series(this.title, this.episodes, this.urlTemplate, this.m3u8List);
 
   static Series fromMap(Map<String, dynamic> map) {
-    return Series(
-        map['title'],
-        map['episodes'],
-        map['url_template'],
-        (map['m3u8_list'] as List)
-            .map((e) => (e as List).map((e) => e.toString()).toList())
-            .toList());
+    return Series(map['title'], map['episodes'], map['url_template'],
+        (map['m3u8_list'] as List).map((e) => (e as List).map((e) => e.toString()).toList()).toList());
   }
 }
 
@@ -93,13 +88,8 @@ class SearchVideo {
   SearchVideo(this.key, this.name, this.rating, this.data);
 
   static SearchVideo fromMap(Map map) {
-    return SearchVideo(
-        map['key'],
-        map['name'],
-        double.parse(map['rating'].toString()),
-        (map['data'] as List)
-            .map((e) => SearchVideoItem.fromMap(e as Map))
-            .toList());
+    return SearchVideo(map['key'], map['name'], double.parse(map['rating'].toString()),
+        (map['data'] as List).map((e) => SearchVideoItem.fromMap(e as Map)).toList());
   }
 }
 
@@ -118,12 +108,10 @@ class SearchVideoItem {
   late int tid;
   late String type;
 
-  SearchVideoItem(
-      this.id, this.name, this.note, this.last, this.dt, this.tid, this.type);
+  SearchVideoItem(this.id, this.name, this.note, this.last, this.dt, this.tid, this.type);
 
   static SearchVideoItem fromMap(Map map) {
-    return SearchVideoItem(map['id'], map['name'], map['note'], map['last'],
-        map['dt'], map['tid'], map['type']);
+    return SearchVideoItem(map['id'], map['name'], map['note'], map['last'], map['dt'], map['tid'], map['type']);
   }
 }
 
@@ -142,10 +130,8 @@ class VideoInfo {
   String? lang;
   late String last;
   late dynamic state;
-  VideoInfo(this.tid, this.name, this.note, this.pic, this.type, this.year, this.dataList,
-      this.des,
-      this.last,
-      this.state,
+  VideoInfo(
+      this.tid, this.name, this.note, this.pic, this.type, this.year, this.dataList, this.des, this.last, this.state,
       {this.actor, this.area, this.director, this.lang});
 
   factory VideoInfo.fromBase64(String source) {
@@ -172,7 +158,7 @@ class VideoInfo {
       lang: map['lang'],
     );
   }
-  
+
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'tid': tid,
@@ -200,15 +186,11 @@ class VideoSource {
   VideoSource(this.name, this.urls);
 
   factory VideoSource.fromMap(Map map) {
-    return VideoSource(map['name'],
-        (map['urls'] as List).map((e) => VideoItem.fromMap(e as Map)).toList());
+    return VideoSource(map['name'], (map['urls'] as List).map((e) => VideoItem.fromMap(e as Map)).toList());
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'name': name,
-      'urls': urls.map((VideoItem videoItem) => videoItem.toMap()).toList()
-    };
+    return <String, dynamic>{'name': name, 'urls': urls.map((VideoItem videoItem) => videoItem.toMap()).toList()};
   }
 }
 
@@ -222,10 +204,7 @@ class VideoItem {
   }
 
   Map<String, String> toMap() {
-    return <String, String>{
-      'label': label,
-      'url': url
-    };
+    return <String, String>{'label': label, 'url': url};
   }
 }
 
@@ -238,5 +217,31 @@ class ApiResponse<T> {
 
   static fromMap<E>(Map map) {
     return ApiResponse<E>(map['code'], map['data'], map['msg']);
+  }
+}
+
+class PlayState {
+  Duration duration = Duration.zero;
+  double buffered = 0;
+  double played = 0;
+
+  PlayState(this.duration, this.buffered, this.played);
+
+  PlayState.origin()
+      : duration = Duration.zero,
+        buffered = 0,
+        played = 0;
+
+  factory PlayState.fromVideoPlayerValue(VideoPlayerValue value) {
+    double buffered = 0;
+    double played = 0;
+    int durationInMilliseconds = value.duration.inMilliseconds;
+    if (value.isInitialized && durationInMilliseconds > 0) {
+      if (value.buffered.isNotEmpty) {
+        buffered = min(value.buffered.last.end.inMilliseconds / durationInMilliseconds, 1);
+      }
+      played = value.position.inMilliseconds / durationInMilliseconds;
+    }
+    return PlayState(value.duration, buffered, played);
   }
 }

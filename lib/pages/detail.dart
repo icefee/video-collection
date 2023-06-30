@@ -53,8 +53,7 @@ class _VideoDetail extends State<VideoDetail> {
   }
 
   void _setFullScreen() async {
-    await SystemChrome.setPreferredOrientations(
-        [DeviceOrientation.landscapeLeft]);
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     setState(() {
       isFullScreen = true;
@@ -74,8 +73,7 @@ class _VideoDetail extends State<VideoDetail> {
   }
 
   void _onEnd() {
-    if (widget.video is Series &&
-        playEpisode < (widget.video as Series).episodes - 1) {
+    if (widget.video is Series && playEpisode < (widget.video as Series).episodes - 1) {
       _playEpisode(playEpisode + 1);
     }
   }
@@ -84,8 +82,7 @@ class _VideoDetail extends State<VideoDetail> {
     if (isFullScreen) {
       if (visible) {
         await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-      }
-      else {
+      } else {
         await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       }
     }
@@ -111,8 +108,7 @@ class _VideoDetail extends State<VideoDetail> {
         return Future.value(true);
       }
     }, child: SafeArea(
-      child: OrientationBuilder(
-          builder: (BuildContext context, Orientation orientation) {
+      child: OrientationBuilder(builder: (BuildContext context, Orientation orientation) {
         bool isLand = orientation == Orientation.landscape;
         return Scaffold(
           appBar: isFullScreen ? null : AppBar(title: Text(widget.video.title)),
@@ -136,8 +132,7 @@ class _VideoDetail extends State<VideoDetail> {
                                 themeColor: Theme.of(context).primaryColor,
                                 toggleFullScreen: _toggleFullScreen,
                                 onEnd: _onEnd,
-                                onControlsVisibleStateChange:
-                                _onControlsVisibleStateChange),
+                                onControlsVisibleStateChange: _onControlsVisibleStateChange),
                             Positioned(
                               left: 0,
                               top: 0,
@@ -150,87 +145,72 @@ class _VideoDetail extends State<VideoDetail> {
                                   elevation: 0,
                                   actions: widget.video is Series
                                       ? [
-                                    IconButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            episodePickerShow =
-                                            !episodePickerShow;
-                                          });
-                                        },
-                                        icon: const Icon(Icons
-                                            .playlist_add_check_outlined))
-                                  ]
+                                          IconButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  episodePickerShow = !episodePickerShow;
+                                                });
+                                              },
+                                              icon: const Icon(Icons.playlist_add_check_outlined))
+                                        ]
                                       : [],
                                 ),
                               ),
                             ),
                             episodePickerShow
                                 ? GestureDetector(
-                              onTap: _hideEpisodePicker,
-                              child: Container(
-                                width: constraints.maxWidth,
-                                height: constraints.maxWidth,
-                                color: Colors.black26,
-                              ),
-                            )
+                                    onTap: _hideEpisodePicker,
+                                    child: Container(
+                                      width: constraints.maxWidth,
+                                      height: constraints.maxWidth,
+                                      color: Colors.black26,
+                                    ),
+                                  )
                                 : Container(),
                             widget.video is Series
                                 ? AnimatedPositioned(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeIn,
-                                top: 0,
-                                right: episodePickerShow ? 0 : -160.0,
-                                child: Container(
-                                  width: 150.0,
-                                  height: constraints.maxHeight,
-                                  decoration: const BoxDecoration(
-                                      color: Colors.black54),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.stretch,
-                                    children: <Widget>[
-                                      Container(
-                                        padding: const EdgeInsets.all(16.0),
-                                        decoration: const BoxDecoration(
-                                            border: Border(
-                                                bottom: BorderSide(
-                                                    width: 1,
-                                                    color: Colors.white24))),
-                                        child: const Text('选集',
-                                            style:
-                                            TextStyle(color: Colors.white)),
+                                    duration: const Duration(milliseconds: 200),
+                                    curve: Curves.easeIn,
+                                    top: 0,
+                                    right: episodePickerShow ? 0 : -160.0,
+                                    child: Container(
+                                      width: 150.0,
+                                      height: constraints.maxHeight,
+                                      decoration: const BoxDecoration(color: Colors.black54),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: <Widget>[
+                                          Container(
+                                            padding: const EdgeInsets.all(16.0),
+                                            decoration: const BoxDecoration(
+                                                border: Border(bottom: BorderSide(width: 1, color: Colors.white24))),
+                                            child: const Text('选集', style: TextStyle(color: Colors.white)),
+                                          ),
+                                          Expanded(
+                                            child: ListView(
+                                              padding: EdgeInsets.zero,
+                                              children: <Widget>[
+                                                for (int i = 1; i <= (widget.video as Series).episodes; i++)
+                                                  ListTile(
+                                                    title: Text('第$i集',
+                                                        style: TextStyle(
+                                                            color: playEpisode == i
+                                                                ? Theme.of(context).primaryColor
+                                                                : Colors.white)),
+                                                    onTap: () {
+                                                      _playEpisode(i);
+                                                      _hideEpisodePicker();
+                                                    },
+                                                  )
+                                              ],
+                                            ),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        child: ListView(
-                                          padding: EdgeInsets.zero,
-                                          children: <Widget>[
-                                            for (int i = 1;
-                                            i <=
-                                                (widget.video as Series)
-                                                    .episodes;
-                                            i++)
-                                              ListTile(
-                                                title: Text('第$i集',
-                                                    style: TextStyle(
-                                                        color: playEpisode == i
-                                                            ? Theme.of(context)
-                                                            .primaryColor
-                                                            : Colors.white)),
-                                                onTap: () {
-                                                  _playEpisode(i);
-                                                  _hideEpisodePicker();
-                                                },
-                                              )
-                                          ],
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ))
+                                    ))
                                 : Container()
                           ],
-                        )
-                    ),
+                        )),
                   ),
                   Positioned(
                     left: 0,
@@ -245,69 +225,46 @@ class _VideoDetail extends State<VideoDetail> {
                             padding: const EdgeInsets.only(left: 5.0),
                             margin: const EdgeInsets.all(8.0),
                             decoration: BoxDecoration(
-                                border: Border(
-                                    left: BorderSide(
-                                        width: 5,
-                                        color: Theme.of(context)
-                                            .primaryColor))),
+                                border: Border(left: BorderSide(width: 5, color: Theme.of(context).primaryColor))),
                             child: const Text('选集')),
                         widget.video is Film
                             ? Container(
-                          padding: const EdgeInsets.all(10.0),
-                          child: const Text('暂无'),
-                        )
+                                padding: const EdgeInsets.all(10.0),
+                                child: const Text('暂无'),
+                              )
                             : Expanded(
-                          child: ListView(
-                            children: <Widget>[
-                              Container(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Wrap(
-                                  spacing: 8.0,
-                                  runSpacing: 8.0,
-                                  children: [
-                                    for (int i = 1;
-                                    i <=
-                                        (widget.video as Series)
-                                            .episodes;
-                                    i++)
-                                      InkWell(
-                                        onTap: () => _playEpisode(i),
-                                        child: Container(
-                                          width:
-                                          (constraints.maxWidth -
-                                              48.0) /
-                                              5,
-                                          decoration: BoxDecoration(
-                                              border: Border.all(
-                                                  color: Theme.of(
-                                                      context)
-                                                      .primaryColor,
-                                                  width: 2),
-                                              color: playEpisode == i
-                                                  ? Theme.of(context)
-                                                  .primaryColor
-                                                  : Colors
-                                                  .transparent),
-                                          padding:
-                                          const EdgeInsets.all(
-                                              5.0),
-                                          child: Center(
-                                            child: Text('第$i集',
-                                                style: TextStyle(
-                                                    color: playEpisode ==
-                                                        i
-                                                        ? Colors.white
-                                                        : Colors
-                                                        .black)),
-                                          ),
-                                        ),
-                                      )
+                                child: ListView(
+                                  children: <Widget>[
+                                    Container(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Wrap(
+                                        spacing: 8.0,
+                                        runSpacing: 8.0,
+                                        children: [
+                                          for (int i = 1; i <= (widget.video as Series).episodes; i++)
+                                            InkWell(
+                                              onTap: () => _playEpisode(i),
+                                              child: Container(
+                                                width: (constraints.maxWidth - 48.0) / 5,
+                                                decoration: BoxDecoration(
+                                                    border: Border.all(color: Theme.of(context).primaryColor, width: 2),
+                                                    color: playEpisode == i
+                                                        ? Theme.of(context).primaryColor
+                                                        : Colors.transparent),
+                                                padding: const EdgeInsets.all(5.0),
+                                                child: Center(
+                                                  child: Text('第$i集',
+                                                      style: TextStyle(
+                                                          color: playEpisode == i ? Colors.white : Colors.black)),
+                                                ),
+                                              ),
+                                            )
+                                        ],
+                                      ),
+                                    )
                                   ],
                                 ),
                               )
-                            ],
-                          ),
-                        )
                       ],
                     ),
                   )
