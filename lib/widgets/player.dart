@@ -128,27 +128,33 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
                 ),
               ),
             ),
-            Offstage(
-              offstage: failed,
-              child: ControlsOverlay(
-                controller: _controller,
-                playState: playState,
-                onSeeking: (double value) {
-                  playState.played = value;
-                  seeking = true;
-                  setState(() {});
-                },
-                onSeekEnd: (double value) {
-                  _controller
-                      .seekTo(Duration(milliseconds: (value * _controller.value.duration.inMilliseconds).round()))
-                      .then((value) {
-                    seeking = false;
-                  });
-                },
-                toggleFullScreen: () => widget.toggleFullScreen?.call(),
-                onControlsVisibleStateChange: widget.onControlsVisibleStateChange,
-              ),
-            )
+            failed
+                ? const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(Icons.warning_amber, color: Colors.orange),
+                      SizedBox(width: 4),
+                      Text('视频加载失败', style: TextStyle(color: Colors.white))
+                    ],
+                  )
+                : ControlsOverlay(
+                    controller: _controller,
+                    playState: playState,
+                    onSeeking: (double value) {
+                      playState.played = value;
+                      seeking = true;
+                      setState(() {});
+                    },
+                    onSeekEnd: (double value) {
+                      _controller
+                          .seekTo(Duration(milliseconds: (value * _controller.value.duration.inMilliseconds).round()))
+                          .then((value) {
+                        seeking = false;
+                      });
+                    },
+                    toggleFullScreen: () => widget.toggleFullScreen?.call(),
+                    onControlsVisibleStateChange: widget.onControlsVisibleStateChange,
+                  )
           ],
         ));
   }
