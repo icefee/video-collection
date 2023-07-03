@@ -242,21 +242,36 @@ class _ControlsOverlay extends State<ControlsOverlay> {
               stops: const [.2, .75],
             )),
             duration: AppTheme.transitionDuration,
+            child: AnimatedOpacity(
+              opacity: controlsVisible ? 1 : 0,
+              duration: AppTheme.transitionDuration,
+              child: Center(
+                child: IconButton(
+                    onPressed: controlsVisible ? _togglePlay : null,
+                    iconSize: 64,
+                    icon: Icon(
+                      widget.controller.value.isPlaying ? Icons.pause_circle : Icons.play_circle,
+                      color: Colors.white.withOpacity(.8),
+                    )),
+              ),
+            ),
           ),
         ),
-        AnimatedOpacity(
-            opacity: controlsVisible ? 1 : 0,
+        AnimatedPositioned(
             duration: AppTheme.transitionDuration,
-            curve: Curves.easeInOut,
+            left: 0,
+            right: 0,
+            bottom: controlsVisible ? 0 : -100,
+            curve: Curves.linearToEaseOut,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
                 Slider.adaptive(
-                  value: widget.playState.played,
-                  secondaryTrackValue: widget.playState.buffered,
-                  onChanged: controlsVisible ? widget.onSeeking : null,
-                  onChangeEnd: widget.onSeekEnd,
-                ),
+                    value: widget.playState.played,
+                    secondaryTrackValue: widget.playState.buffered,
+                    onChanged: widget.onSeeking,
+                    onChangeEnd: widget.onSeekEnd,
+                    secondaryActiveColor: Colors.white60,
+                    inactiveColor: Colors.white30),
                 Container(
                   padding: const EdgeInsets.fromLTRB(5, 0, 5, 5),
                   child: Row(
@@ -265,7 +280,7 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                       Row(
                         children: <Widget>[
                           InkWell(
-                            onTap: controlsVisible ? _togglePlay : null,
+                            onTap: _togglePlay,
                             child: Icon(
                               widget.controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
                               color: Colors.white,
@@ -279,7 +294,7 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                         ],
                       ),
                       InkWell(
-                        onTap: controlsVisible ? widget.toggleFullScreen : null,
+                        onTap: widget.toggleFullScreen,
                         child: const Icon(
                           Icons.fullscreen_rounded,
                           color: Colors.white,
@@ -291,19 +306,6 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                 )
               ],
             )),
-        AnimatedOpacity(
-          opacity: controlsVisible ? 1 : 0,
-          duration: AppTheme.transitionDuration,
-          child: Center(
-            child: IconButton(
-                onPressed: _togglePlay,
-                iconSize: 64,
-                icon: Icon(
-                  widget.controller.value.isPlaying ? Icons.pause_circle : Icons.play_circle,
-                  color: Colors.white.withOpacity(.8),
-                )),
-          ),
-        )
       ],
     );
   }
