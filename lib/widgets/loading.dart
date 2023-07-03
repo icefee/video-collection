@@ -10,8 +10,7 @@ class Loading extends StatelessWidget {
       child: Container(
         width: 64,
         height: 64,
-        decoration:
-        BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(4.0)),
+        decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(4.0)),
         padding: const EdgeInsets.all(16.0),
         child: const CircularProgressIndicator(
           strokeWidth: 2,

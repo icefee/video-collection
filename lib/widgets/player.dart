@@ -279,7 +279,7 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                     secondaryActiveColor: Colors.white60,
                     inactiveColor: Colors.white30),
                 Container(
-                  padding: const EdgeInsets.fromLTRB(5, 0, 5, 5),
+                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[

@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../tool/api.dart';
-import './video_collection.dart';
 import './search.dart';
+import '../widgets/list.dart';
+import '../widgets/loading.dart';
+import '../tool/api.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -45,11 +46,7 @@ class _Home extends State<Home> {
             : [
                 IconButton(
                     onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (BuildContext context) =>
-                                  const SearchPage()));
+                      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => const SearchPage()));
                     },
                     icon: const Icon(Icons.search))
               ],
@@ -59,8 +56,7 @@ class _Home extends State<Home> {
           children: <Widget>[
             DrawerHeader(
               decoration: const BoxDecoration(
-                image: DecorationImage(
-                    fit: BoxFit.cover, image: AssetImage('assets/cover.jpeg')),
+                image: DecorationImage(fit: BoxFit.cover, image: AssetImage('assets/cover.jpeg')),
                 color: Colors.indigo,
               ),
               child: Container(),
@@ -87,18 +83,15 @@ class _Home extends State<Home> {
                         size: 16.0,
                       ));
                 },
-                separatorBuilder: (BuildContext context, int index) =>
-                    Divider(height: 1, color: Colors.grey[300]),
+                separatorBuilder: (BuildContext context, int index) => Divider(height: 1, color: Colors.grey[300]),
               ),
             )
           ],
         ),
       ),
       body: activeSection == null
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : VideoCollection(
+          ? const Loading()
+          : VideoList(
               section: activeSection!,
             ),
     );

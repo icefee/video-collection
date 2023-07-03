@@ -6,7 +6,6 @@ import './type.dart';
 export './type.dart';
 
 class Api {
-
   static String apiServer = 'https://spacedeta-1-f1000878.deta.app';
   static String source = kIsWeb ? '/videos.json' : '$apiServer/api/video';
 
@@ -34,6 +33,7 @@ class Api {
         throw result.msg;
       }
     } catch (err) {
+      print(err);
       return null;
     }
   }
@@ -43,11 +43,7 @@ class Api {
     return videoData != null ? VideoData.fromMap(videoData) : null;
   }
 
-  static List<String> servers = [
-    apiServer,
-    'https://apps.gatsbyjs.io',
-    'https://code-app.netlify.app'
-  ];
+  static List<String> servers = [apiServer, 'https://apps.gatsbyjs.io', 'https://code-app.netlify.app'];
 
   static String getServer(int serverId) => servers[serverId];
 
@@ -56,24 +52,24 @@ class Api {
     return '$server/video/play/$id';
   }
 
-  static Future<SearchVideoList?> getSearchVideo(
-      int serverId, SearchQuery query) async {
+  static Future<SearchVideoList?> getSearchVideo(int serverId, SearchQuery query) async {
     String searchUrl = '${getServer(serverId)}/api/video/list?s=${query.s}';
     if (query.prefer18) {
       searchUrl += '&prefer=18';
     }
-    List? result = await getApiJson(searchUrl);
-    return result != null ? SearchVideoList.fromMap(result) : null;
+    List? listMap = await getApiJson(searchUrl);
+    return listMap != null ? SearchVideoList.fromMap(listMap) : null;
   }
 
   static String getVideoPoster(int serverId, String id) {
     return '${getServer(serverId)}/api/video/$id?type=poster';
   }
 
-  static Future<VideoInfo?> getVideoDetail(
-      int serverId, String id) async {
+  static Future<VideoInfo?> getVideoDetail(int serverId, String id) async {
     String api = '${getServer(serverId)}/api/video/$id';
-    Map? result = await getApiJson(api);
-    return result != null ? VideoInfo.fromMap(result) : null;
+    Map? jsonMap = await getApiJson(api);
+    return jsonMap != null ? VideoInfo.fromMap(jsonMap) : null;
   }
+
+  static Future<String?> parseVideoUrl(String url) => getApiJson<String>('$apiServer/api/video/parse?url=$url');
 }
