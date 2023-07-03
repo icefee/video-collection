@@ -252,10 +252,11 @@ class _ControlsOverlay extends State<ControlsOverlay> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
                 Slider.adaptive(
-                    value: widget.playState.played,
-                    secondaryTrackValue: widget.playState.buffered,
-                    onChanged: widget.onSeeking,
-                    onChangeEnd: widget.onSeekEnd),
+                  value: widget.playState.played,
+                  secondaryTrackValue: widget.playState.buffered,
+                  onChanged: controlsVisible ? widget.onSeeking : null,
+                  onChangeEnd: widget.onSeekEnd,
+                ),
                 Container(
                   padding: const EdgeInsets.fromLTRB(5, 0, 5, 5),
                   child: Row(
@@ -264,7 +265,7 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                       Row(
                         children: <Widget>[
                           InkWell(
-                            onTap: _togglePlay,
+                            onTap: controlsVisible ? _togglePlay : null,
                             child: Icon(
                               widget.controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
                               color: Colors.white,
@@ -278,7 +279,7 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                         ],
                       ),
                       InkWell(
-                        onTap: () => widget.toggleFullScreen(),
+                        onTap: controlsVisible ? widget.toggleFullScreen : null,
                         child: const Icon(
                           Icons.fullscreen_rounded,
                           color: Colors.white,
