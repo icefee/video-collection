@@ -33,7 +33,6 @@ class Api {
         throw result.msg;
       }
     } catch (err) {
-      print(err);
       return null;
     }
   }
