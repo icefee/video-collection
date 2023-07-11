@@ -22,6 +22,7 @@ class _SearchPage extends State<SearchPage> {
   String searchKeyword = '';
 
   TextEditingController searchFieldController = TextEditingController();
+  FocusNode focusNode = FocusNode();
 
   final storage = const FlutterSecureStorage();
 
@@ -51,7 +52,6 @@ class _SearchPage extends State<SearchPage> {
     setState(() {
       loading = true;
     });
-    removeSnackBar();
     try {
       String wd = s;
       bool prefer = false;
@@ -60,34 +60,31 @@ class _SearchPage extends State<SearchPage> {
         prefer = true;
       }
       SearchVideoList? result = await Api.getSearchVideo(apiServer, SearchQuery(wd, prefer));
-      if (mounted) {
+      if (result != null) {
         setState(() {
-          loading = false;
+          videoList = result.data;
         });
-        if (result != null) {
-          setState(() {
-            videoList = result.data;
-          });
-          WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            listController.animateTo(0, duration: const Duration(milliseconds: 200), curve: Curves.ease);
-          });
-        } else {
-          throw 'Get search result failed.';
-        }
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          listController.animateTo(0, duration: const Duration(milliseconds: 200), curve: Curves.ease);
+        });
+      } else {
+        throw 'Get search result failed.';
       }
     } catch (err) {
-      showSnackBar('获取搜索结果失败', () => getSearch(s));
-      setState(() {
-        loading = false;
-      });
+      bool? result = await showError(title: '错误', msg: '获取搜索结果失败');
+      if (result != null && result) {
+        await getSearch(s);
+      }
     }
+    setState(() {
+      loading = false;
+    });
   }
 
   Future<void> getVideoInfo(String key, int id) async {
     setState(() {
       loading = true;
     });
-    removeSnackBar();
     try {
       VideoInfo? videoInfo = await Api.getVideoDetail(apiServer, createId(key, id));
       if (videoInfo != null) {
@@ -104,28 +101,48 @@ class _SearchPage extends State<SearchPage> {
         throw 'failed';
       }
     } catch (err) {
-      showSnackBar('获取内容详情失败', () => getVideoInfo(key, id));
+      bool? result = await showError(title: '错误', msg: '获取内容详情失败');
+      if (result != null && result) {
+        await getVideoInfo(key, id);
+      }
     }
     setState(() {
       loading = false;
     });
   }
 
-  void showSnackBar(String message, VoidCallback onRetry) {
-    removeSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(message),
-      backgroundColor: Colors.redAccent,
-      action: SnackBarAction(
-        label: '重试',
-        onPressed: onRetry,
-        textColor: Colors.white,
-      ),
-    ));
-  }
-
-  void removeSnackBar() {
-    ScaffoldMessenger.of(context).clearSnackBars();
+  Future<bool?> showError({required String title, required String msg}) async {
+    return showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: Text(title),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 5),
+              content: SizedBox(
+                height: 120,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                      child: Text(msg),
+                    ),
+                    ButtonBar(
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: TextButton.styleFrom(
+                              backgroundColor: Theme.of(context).primaryColor, foregroundColor: Colors.white),
+                          child: const Text('重试'),
+                        ),
+                        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消'))
+                      ],
+                    )
+                  ],
+                ),
+              ));
+        });
   }
 
   Future<void> openLink(String url) => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
@@ -166,9 +183,7 @@ class _SearchPage extends State<SearchPage> {
           );
         });
     if (serverId != null) {
-      setState(() {
-        apiServer = serverId;
-      });
+      apiServer = serverId;
       storage.write(key: 'server_id', value: serverId.toString());
     }
   }
@@ -176,221 +191,219 @@ class _SearchPage extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return WillPopScope(
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('搜索'),
-            actions: [IconButton(onPressed: showSetting, icon: const Icon(Icons.settings))],
-          ),
-          backgroundColor: Colors.grey[200],
-          body: Stack(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('搜索'),
+        actions: [IconButton(onPressed: showSetting, icon: const Icon(Icons.settings))],
+      ),
+      backgroundColor: Colors.grey[200],
+      body: Stack(
+        children: [
+          Column(
             children: [
-              Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(5.0)),
-                      padding: const EdgeInsets.only(left: 10.0),
-                      child: Stack(
-                        clipBehavior: Clip.hardEdge,
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(5.0)),
+                  padding: const EdgeInsets.only(left: 10.0),
+                  child: Stack(
+                    clipBehavior: Clip.hardEdge,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.only(right: 8),
-                                child: SizedBox(
-                                  width: 25,
-                                  child: Icon(Icons.search, color: Colors.grey),
-                                ),
-                              ),
-                              Expanded(
-                                child: TextField(
-                                  autofocus: true,
-                                  controller: searchFieldController,
-                                  textInputAction: TextInputAction.search,
-                                  decoration: const InputDecoration(border: InputBorder.none, hintText: '输入关键词搜索'),
-                                  onChanged: (String text) {
-                                    setState(() {
-                                      searchKeyword = text;
-                                    });
-                                  },
-                                  onSubmitted: (String text) {
-                                    if (text.trim().isNotEmpty) {
-                                      getSearch(text);
-                                    }
-                                  },
-                                ),
-                              )
-                            ],
+                          const Padding(
+                            padding: EdgeInsets.only(right: 8),
+                            child: SizedBox(
+                              width: 25,
+                              child: Icon(Icons.search, color: Colors.grey),
+                            ),
                           ),
-                          Positioned(
-                              right: 10,
-                              top: 13,
-                              child: AnimatedScale(
-                                scale: searchKeyword.isNotEmpty ? 1 : 0,
-                                duration: const Duration(milliseconds: 200),
-                                child: InkWell(
-                                  child: const Icon(Icons.close, color: Colors.grey),
-                                  onTap: () {
-                                    searchFieldController.text = '';
-                                    setState(() {
-                                      searchKeyword = '';
-                                    });
-                                  },
-                                ),
-                              ))
+                          Expanded(
+                            child: TextField(
+                              autofocus: true,
+                              focusNode: focusNode,
+                              controller: searchFieldController,
+                              textInputAction: TextInputAction.search,
+                              decoration: const InputDecoration(border: InputBorder.none, hintText: '输入关键词搜索'),
+                              onChanged: (String text) {
+                                setState(() {
+                                  searchKeyword = text;
+                                });
+                              },
+                              onSubmitted: (String text) {
+                                if (text.trim().isNotEmpty) {
+                                  getSearch(text);
+                                }
+                              },
+                            ),
+                          )
                         ],
                       ),
-                    ),
+                      Positioned(
+                          right: 10,
+                          top: 13,
+                          child: AnimatedScale(
+                            scale: searchKeyword.isNotEmpty ? 1 : 0,
+                            duration: const Duration(milliseconds: 200),
+                            child: InkWell(
+                              child: const Icon(Icons.close, color: Colors.grey),
+                              onTap: () {
+                                searchFieldController.text = '';
+                                if (!focusNode.hasFocus) {
+                                  focusNode.requestFocus();
+                                }
+                                setState(() {
+                                  searchKeyword = '';
+                                });
+                              },
+                            ),
+                          ))
+                    ],
                   ),
-                  Expanded(
-                      child: ListView(
-                    controller: listController,
-                    padding: const EdgeInsets.all(8.0),
-                    children: videoList
-                        .asMap()
-                        .keys
-                        .map((int sourceIndex) => Container(
-                              padding: const EdgeInsets.only(bottom: 20.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Text(videoList[sourceIndex].name),
-                                        RatingBarIndicator(
-                                          rating: videoList[sourceIndex].rating,
-                                          itemBuilder: (context, index) =>
-                                              Icon(Icons.star, color: Theme.of(context).primaryColor),
-                                          itemCount: 5,
-                                          itemSize: 16.0,
-                                          direction: Axis.horizontal,
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                  Column(
-                                    children: videoList[sourceIndex]
-                                        .data
-                                        .map((SearchVideoItem video) => Container(
-                                              margin: const EdgeInsets.only(bottom: 8),
-                                              child: TextButton(
-                                                style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                                                onPressed: () => getVideoInfo(videoList[sourceIndex].key, video.id),
-                                                child: Container(
-                                                  padding: const EdgeInsets.only(right: 8.0),
-                                                  decoration: BoxDecoration(
-                                                      color: Colors.white.withOpacity(.4),
-                                                      borderRadius: BorderRadius.circular(5.0)),
-                                                  clipBehavior: Clip.hardEdge,
-                                                  child: Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: [
-                                                      Expanded(
-                                                        child: Row(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            SizedBox(
-                                                              width: 105,
-                                                              child: Poster(
-                                                                src: Api.getVideoPoster(apiServer,
-                                                                    createId(videoList[sourceIndex].key, video.id)),
-                                                              ),
-                                                            ),
-                                                            Expanded(
-                                                              child: Container(
-                                                                height: 105 * 1.5,
-                                                                padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                                                                child: Column(
-                                                                  mainAxisAlignment: MainAxisAlignment.start,
-                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+              ),
+              Expanded(
+                  child: ListView(
+                controller: listController,
+                padding: const EdgeInsets.all(8.0),
+                children: videoList
+                    .asMap()
+                    .keys
+                    .map((int sourceIndex) => Container(
+                          padding: const EdgeInsets.only(bottom: 20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(videoList[sourceIndex].name),
+                                    RatingBarIndicator(
+                                      rating: videoList[sourceIndex].rating,
+                                      itemBuilder: (context, index) =>
+                                          Icon(Icons.star, color: Theme.of(context).primaryColor),
+                                      itemCount: 5,
+                                      itemSize: 16.0,
+                                      direction: Axis.horizontal,
+                                    )
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                children: videoList[sourceIndex]
+                                    .data
+                                    .map((SearchVideoItem video) => Container(
+                                          margin: const EdgeInsets.only(bottom: 8),
+                                          child: TextButton(
+                                            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                                            onPressed: () => getVideoInfo(videoList[sourceIndex].key, video.id),
+                                            child: Container(
+                                              padding: const EdgeInsets.only(right: 8.0),
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white.withOpacity(.4),
+                                                  borderRadius: BorderRadius.circular(5.0)),
+                                              clipBehavior: Clip.hardEdge,
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Expanded(
+                                                    child: Row(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        SizedBox(
+                                                          width: 105,
+                                                          child: Poster(
+                                                            src: Api.getVideoPoster(apiServer,
+                                                                createId(videoList[sourceIndex].key, video.id)),
+                                                          ),
+                                                        ),
+                                                        Expanded(
+                                                          child: Container(
+                                                            height: 105 * 1.5,
+                                                            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                                                            child: Column(
+                                                              mainAxisAlignment: MainAxisAlignment.start,
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                Text(
+                                                                  video.name,
+                                                                  style: const TextStyle(fontSize: 20),
+                                                                  overflow: TextOverflow.ellipsis,
+                                                                  softWrap: true,
+                                                                  maxLines: 2,
+                                                                ),
+                                                                Row(
                                                                   children: [
-                                                                    Text(
-                                                                      video.name,
-                                                                      style: const TextStyle(fontSize: 20),
-                                                                      overflow: TextOverflow.ellipsis,
-                                                                      softWrap: true,
-                                                                      maxLines: 2,
+                                                                    Chip(
+                                                                      label: Text(video.type,
+                                                                          style: const TextStyle(fontSize: 14)),
+                                                                      backgroundColor:
+                                                                          Theme.of(context).secondaryHeaderColor,
                                                                     ),
-                                                                    Row(
-                                                                      children: [
-                                                                        Chip(
-                                                                          label: Text(video.type,
-                                                                              style: const TextStyle(fontSize: 14)),
-                                                                          backgroundColor:
-                                                                              Theme.of(context).secondaryHeaderColor,
-                                                                        ),
-                                                                        Container(
-                                                                          margin: const EdgeInsets.only(left: 8.0),
-                                                                          child: Text(video.note,
-                                                                              style: TextStyle(
-                                                                                  fontSize: 14,
-                                                                                  color: Colors.grey[500])),
-                                                                        )
-                                                                      ],
-                                                                    ),
-                                                                    Expanded(
-                                                                      child: Container(
-                                                                          alignment: Alignment.bottomLeft,
-                                                                          child: TextButton(
-                                                                            onPressed: () async {
-                                                                              await openLink(Api.getDetailUrl(
-                                                                                  apiServer,
-                                                                                  createId(videoList[sourceIndex].key,
-                                                                                      video.id)));
-                                                                            },
-                                                                            style: TextButton.styleFrom(
-                                                                                backgroundColor:
-                                                                                    Theme.of(context).primaryColor,
-                                                                                foregroundColor: Colors.white),
-                                                                            child: const Text('网页播放'),
-                                                                          )),
+                                                                    Container(
+                                                                      margin: const EdgeInsets.only(left: 8.0),
+                                                                      child: Text(video.note,
+                                                                          style: TextStyle(
+                                                                              fontSize: 14, color: Colors.grey[500])),
                                                                     )
                                                                   ],
                                                                 ),
-                                                              ),
-                                                            )
-                                                          ],
-                                                        ),
-                                                      ),
-                                                      const Icon(Icons.arrow_forward_ios, size: 16.0)
-                                                    ],
+                                                                Expanded(
+                                                                  child: Container(
+                                                                      alignment: Alignment.bottomLeft,
+                                                                      child: TextButton(
+                                                                        onPressed: () async {
+                                                                          await openLink(Api.getDetailUrl(
+                                                                              apiServer,
+                                                                              createId(videoList[sourceIndex].key,
+                                                                                  video.id)));
+                                                                        },
+                                                                        style: TextButton.styleFrom(
+                                                                            backgroundColor:
+                                                                                Theme.of(context).primaryColor,
+                                                                            foregroundColor: Colors.white),
+                                                                        child: const Text('网页播放'),
+                                                                      )),
+                                                                )
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        )
+                                                      ],
+                                                    ),
                                                   ),
-                                                ),
+                                                  const Icon(Icons.arrow_forward_ios, size: 16.0)
+                                                ],
                                               ),
-                                            ))
-                                        .toList(),
-                                  )
-                                ],
-                              ),
-                            ))
-                        .toList(),
-                  ))
-                ],
-              ),
-              Positioned(
-                  left: 0,
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: Offstage(
-                    offstage: !loading,
-                    child: const Loading(),
-                  ))
+                                            ),
+                                          ),
+                                        ))
+                                    .toList(),
+                              )
+                            ],
+                          ),
+                        ))
+                    .toList(),
+              ))
             ],
           ),
-        ),
-        onWillPop: () {
-          removeSnackBar();
-          return Future.value(true);
-        });
+          Positioned(
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              child: Offstage(
+                offstage: !loading,
+                child: const Loading(),
+              ))
+        ],
+      ),
+    );
   }
 }
