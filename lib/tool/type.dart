@@ -63,6 +63,22 @@ class Film implements Video {
   }
 }
 
+class Tv implements Video {
+  @override
+  late String title;
+  final int id;
+  late String url;
+  Tv({required this.id, required this.title, required this.url});
+
+  static Tv fromMap(Map map) {
+    return Tv(
+      id: map['id'],
+      title: map['title'],
+      url: map['url']
+    );
+  }
+}
+
 class SearchVideoList {
   late List<SearchVideo> data;
 

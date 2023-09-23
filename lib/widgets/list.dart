@@ -32,7 +32,11 @@ class VideoList extends StatelessWidget {
               itemBuilder: (BuildContext context, int index) {
                 Video video = section.series[index];
                 return ListTile(
-                  leading: Icon(video is Series ? Icons.video_collection_outlined : Icons.local_movies_outlined),
+                  leading: Icon(video is Series
+                      ? Icons.video_collection_outlined
+                      : video is Film
+                          ? Icons.local_movies_outlined
+                          : Icons.live_tv_outlined),
                   title: Text(video.title),
                   subtitle: video is Series ? Text('${video.episodes}集') : null,
                   trailing: const Icon(

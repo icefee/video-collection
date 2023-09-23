@@ -7,13 +7,14 @@ export './type.dart';
 
 class Api {
   static String apiServer = 'https://spacedeta-1-f1000878.deta.app';
-  static String source = kIsWeb ? '/videos.json' : '$apiServer/api/video';
+  static String videoSource = kIsWeb ? '/videos.json' : '$apiServer/api/video';
+  static String tvSource = '$apiServer/api/video/tv';
 
-  static Future<Map?> getJson(String url) async {
+  static Future<T?> getJson<T>(String url) async {
     try {
       Response response = await get(Uri.parse(url));
       String json = utf8.decode(response.bodyBytes);
-      Map data = jsonDecode(json);
+      T data = jsonDecode(json);
       return data;
     } catch (err) {
       return null;
@@ -37,9 +38,18 @@ class Api {
     }
   }
 
-  static Future<VideoData?> getSourceData(String url) async {
-    Map? videoData = await getJson(url);
-    return videoData != null ? VideoData.fromMap(videoData) : null;
+  static Future<VideoData?> getSourceData() async {
+    VideoData? videoData;
+    Map? videoDataMap = await getJson(Api.videoSource);
+    if (videoDataMap != null) {
+      videoData = VideoData.fromMap(videoDataMap);
+      List? mapList = await getJson<List>(Api.tvSource);
+      List<Tv>? tvList = mapList?.map((item) => Tv.fromMap(item as Map)).toList();
+      if (tvList != null) {
+        videoData.videos.add(VideoSection('电视直播', tvList));
+      }
+    }
+    return videoData;
   }
 
   static List<String> servers = [apiServer, 'https://apps.gatsbyjs.io', 'https://code-app.netlify.app'];

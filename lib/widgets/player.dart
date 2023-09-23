@@ -15,6 +15,7 @@ void setWakelock(bool enable) {
 
 class NetworkVideoPlayer extends StatefulWidget {
   final String url;
+  final bool live;
   final Color themeColor;
   final VoidCallback? toggleFullScreen;
   final VoidCallback? onEnd;
@@ -23,6 +24,7 @@ class NetworkVideoPlayer extends StatefulWidget {
   const NetworkVideoPlayer(
       {Key? key,
       required this.url,
+      this.live = false,
       this.themeColor = Colors.blue,
       this.toggleFullScreen,
       this.onEnd,
@@ -139,6 +141,7 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
                   )
                 : ControlsOverlay(
                     controller: _controller,
+                    live: widget.live,
                     playState: playState,
                     onSeeking: (double value) {
                       playState.played = value;
@@ -162,6 +165,7 @@ class _NetworkVideoPlayer extends State<NetworkVideoPlayer> {
 
 class ControlsOverlay extends StatefulWidget {
   final VideoPlayerController controller;
+  final bool live;
   final PlayState playState;
   final ValueChanged<double> onSeeking;
   final ValueChanged<double> onSeekEnd;
@@ -171,6 +175,7 @@ class ControlsOverlay extends StatefulWidget {
   const ControlsOverlay(
       {Key? key,
       required this.controller,
+      required this.live,
       required this.playState,
       required this.onSeeking,
       required this.onSeekEnd,
@@ -226,7 +231,7 @@ class _ControlsOverlay extends State<ControlsOverlay> {
             _toggleControlsVisible(true);
           },
           onHorizontalDragUpdate: (DragUpdateDetails details) {
-            if (widget.controller.value.isInitialized) {
+            if (widget.controller.value.isInitialized && !widget.live) {
               int seconds = widget.controller.value.position.inSeconds;
               int totalSeconds = widget.controller.value.duration.inSeconds;
               double screenWidth = MediaQuery.of(context).size.width;
@@ -271,13 +276,16 @@ class _ControlsOverlay extends State<ControlsOverlay> {
             curve: Curves.linearToEaseOut,
             child: Column(
               children: <Widget>[
-                Slider.adaptive(
-                    value: widget.playState.played,
-                    secondaryTrackValue: widget.playState.buffered,
-                    onChanged: widget.onSeeking,
-                    onChangeEnd: widget.onSeekEnd,
-                    secondaryActiveColor: Colors.white60,
-                    inactiveColor: Colors.white30),
+                Offstage(
+                  offstage: widget.live,
+                  child: Slider.adaptive(
+                      value: widget.playState.played,
+                      secondaryTrackValue: widget.playState.buffered,
+                      onChanged: widget.onSeeking,
+                      onChangeEnd: widget.onSeekEnd,
+                      secondaryActiveColor: Colors.white60,
+                      inactiveColor: Colors.white30),
+                ),
                 Container(
                   padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                   child: Row(
@@ -293,9 +301,12 @@ class _ControlsOverlay extends State<ControlsOverlay> {
                               size: 32,
                             ),
                           ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 5.0),
-                            child: Text(playedTime, style: const TextStyle(color: Colors.white, fontSize: 16.0)),
+                          Offstage(
+                            offstage: widget.live,
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 5.0),
+                              child: Text(playedTime, style: const TextStyle(color: Colors.white, fontSize: 16.0)),
+                            ),
                           )
                         ],
                       ),

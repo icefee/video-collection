@@ -26,7 +26,7 @@ class _Home extends State<Home> {
   }
 
   Future<void> getVideoSource() async {
-    VideoData? requestData = await Api.getSourceData(Api.source);
+    VideoData? requestData = await Api.getSourceData();
     if (requestData != null) {
       videos = requestData.videos;
       if (videos.isNotEmpty) {

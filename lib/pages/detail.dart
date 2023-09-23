@@ -40,6 +40,8 @@ class _VideoDetail extends State<VideoDetail> {
   void _initPlayer() {
     if (widget.video is Film) {
       playUrl = (widget.video as Film).m3u8Url;
+    } else if (widget.video is Tv) {
+      playUrl = (widget.video as Tv).url; // .replaceAll(RegExp(r'^http'), 'https');
     } else {
       Series series = widget.video as Series;
       playUrl = _getVideoUrl(series, playEpisode);
@@ -128,14 +130,21 @@ class _VideoDetail extends State<VideoDetail> {
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            VideoUrlParser(
-                                url: playUrl,
-                                childBuilder: (String url) => NetworkVideoPlayer(
-                                    url: url,
+                            widget.video is Tv
+                                ? NetworkVideoPlayer(
+                                    url: playUrl,
+                                    live: true,
                                     themeColor: Theme.of(context).primaryColor,
                                     toggleFullScreen: _toggleFullScreen,
-                                    onEnd: _onEnd,
-                                    onControlsVisibleStateChange: _onControlsVisibleStateChange)),
+                                    onControlsVisibleStateChange: _onControlsVisibleStateChange)
+                                : VideoUrlParser(
+                                    url: playUrl,
+                                    childBuilder: (String url) => NetworkVideoPlayer(
+                                        url: url,
+                                        themeColor: Theme.of(context).primaryColor,
+                                        toggleFullScreen: _toggleFullScreen,
+                                        onEnd: _onEnd,
+                                        onControlsVisibleStateChange: _onControlsVisibleStateChange)),
                             Positioned(
                               left: 0,
                               top: 0,
@@ -230,12 +239,8 @@ class _VideoDetail extends State<VideoDetail> {
                             decoration: BoxDecoration(
                                 border: Border(left: BorderSide(width: 5, color: Theme.of(context).primaryColor))),
                             child: const Text('选集')),
-                        widget.video is Film
-                            ? Container(
-                                padding: const EdgeInsets.all(10.0),
-                                child: const Text('暂无'),
-                              )
-                            : Expanded(
+                        widget.video is Series
+                            ? Expanded(
                                 child: ListView(
                                   children: <Widget>[
                                     Container(
@@ -267,6 +272,10 @@ class _VideoDetail extends State<VideoDetail> {
                                     )
                                   ],
                                 ),
+                              )
+                            : Container(
+                                padding: const EdgeInsets.all(10.0),
+                                child: const Text('暂无'),
                               )
                       ],
                     ),
