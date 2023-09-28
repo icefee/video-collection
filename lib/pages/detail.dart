@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../widgets/player.dart';
 import '../widgets/video_url_parser.dart';
+import '../tool/api.dart';
 import '../tool/type.dart';
 
 class VideoDetail extends StatefulWidget {
@@ -140,7 +141,7 @@ class _VideoDetail extends State<VideoDetail> {
                                 : VideoUrlParser(
                                     url: playUrl,
                                     childBuilder: (String url) => NetworkVideoPlayer(
-                                        url: url,
+                                        url: Api.pureVideoUrl(url),
                                         themeColor: Theme.of(context).primaryColor,
                                         toggleFullScreen: _toggleFullScreen,
                                         onEnd: _onEnd,

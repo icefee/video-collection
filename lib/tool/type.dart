@@ -71,11 +71,7 @@ class Tv implements Video {
   Tv({required this.id, required this.title, required this.url});
 
   static Tv fromMap(Map map) {
-    return Tv(
-      id: map['id'],
-      title: map['title'],
-      url: map['url']
-    );
+    return Tv(id: map['id'], title: map['title'], url: map['url']);
   }
 }
 
@@ -90,7 +86,7 @@ class SearchVideoList {
     return SearchVideoList(data.map((e) => SearchVideo.fromMap(e)).toList());
   }
 
-  static SearchVideoList fromMap(List data) {
+  static SearchVideoList fromMapList(List data) {
     return SearchVideoList(data.map((e) => SearchVideo.fromMap(e)).toList());
   }
 }
@@ -120,7 +116,7 @@ class SearchVideoItem {
   late String name;
   late String note;
   late String last;
-  late String dt;
+  late String? dt;
   late int tid;
   late String type;
 
