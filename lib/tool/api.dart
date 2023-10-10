@@ -53,7 +53,7 @@ class Api {
     return videoData;
   }
 
-  static List<String> servers = [apiServer, 'https://apps.gatsbyjs.io', 'https://code-app.netlify.app'];
+  static List<String> servers = [apiServer, 'https://apps-h47u.onrender.com', 'https://code-app.netlify.app'];
 
   static String getServer(int serverId) => servers[serverId];
 
